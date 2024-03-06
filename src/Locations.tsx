@@ -1,3 +1,5 @@
-export default function Locations({data}) {
-    const locations = 
+import Mapbox from "./Mapbox";
+
+export default function Locations() {
+  return <Mapbox />;
 }

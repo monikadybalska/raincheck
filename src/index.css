@@ -31,7 +31,7 @@ body {
   width: 100%;
   border-radius: 8px 8px 0 0;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -202,11 +202,17 @@ button:hover {
 
 h1 {
   color: black;
+  margin-right: 20px;
 }
 
 .location {
   font-size: 20px;
   margin: 10px;
+}
+
+.locations {
+  color: black;
+  margin-left: 20px;
 }
 
 h2 {
