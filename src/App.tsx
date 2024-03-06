@@ -169,7 +169,7 @@ function App() {
     if (!query) {
       async function success(position: GeolocationPosition) {
         setLocation(`${position.coords.latitude},${position.coords.longitude}`)
-        await fetch(`https://api.tomorrow.io/v4/weather/forecast?location=${location}&timesteps=1h&timesteps=1d&apikey=${import.meta.env.VITE_API_KEY}`)
+        await fetch(`https://api.tomorrow.io/v4/weather/forecast?location=${location}&timesteps=1h&timesteps=1d&apikey=${import.meta.env.VITE_TOMORROW_API_KEY}`)
         .then(res => res.json())
         .then((result: WeatherType) => {
           setData(result)
