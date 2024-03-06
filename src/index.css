@@ -1,0 +1,229 @@
+body {
+  background-color: black;
+  color: whitesmoke;
+  font-family: "Lato", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  margin: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid white;
+  border-radius: 10px;
+  width: 50%;
+  min-height: 500px;
+  min-width: 400px;
+}
+
+.header {
+  background-color: whitesmoke;
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer {
+  background-color: whitesmoke;
+  color: black;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 0 8px 8px;
+  font-size: 15px;
+}
+
+input {
+  font-family: "Lato", sans-serif;
+  margin-left: 10px;
+  font-size: 15px;
+  padding: 8px;
+  border-radius: 2px 0 0 2px;
+  border: 1.6px solid black;
+}
+
+button {
+  font-family: "Lato", sans-serif;
+  background-color: black;
+  color: whitesmoke;
+  border-radius: 0 2px 2px 0;
+  text-transform: uppercase;
+  font-size: 15px;
+  padding: 8px 10px 8px 10px;
+  border: 1.6px solid black;
+}
+
+button:hover {
+  background-color: whitesmoke;
+  color: black;
+  cursor: pointer;
+  border-left: 1.6px solid transparent;
+}
+
+.Cloudy,
+.Mist,
+.Haze,
+.Dust,
+.Fog,
+.Sand,
+.Weather,
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  background-color: lightgrey;
+  color: black;
+  padding: 30px 50px 0 50px;
+}
+
+.HourlyWeather {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  overflow: scroll;
+  scrollbar-color: black whitesmoke;
+  margin: 20px 0 20px 0;
+}
+
+.HourlyWeatherWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  overflow: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: black lightgrey;
+  scroll-behavior: smooth;
+}
+
+.HourlyWeatherElement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-right: 50px;
+}
+
+.DailyWeather {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.DailyWeatherElement {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 50px;
+}
+
+.DailyWeatherElementTemperature {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.DailyWeatherElementTemperature > * {
+  margin-left: 15px;
+  min-width: 32px;
+  text-align: right;
+}
+
+.DailyWeatherElementTemperature :last-child {
+  min-width: auto;
+}
+
+.Clear,
+.Sunny {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  background-color: lightyellow;
+  color: black;
+}
+
+.Rain,
+.Drizzle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  background-color: lightblue;
+  color: black;
+}
+
+.Thunderstorm,
+.Smoke,
+.Ash,
+.Squall,
+.Tornado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  background-color: grey;
+  color: black;
+}
+
+.Snow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  background-color: grey;
+  color: white;
+}
+
+h1 {
+  color: black;
+}
+
+.location {
+  font-size: 20px;
+  margin: 10px;
+}
+
+h2 {
+  margin: 10px;
+  font-size: 50px;
+}
+
+.xl {
+  font-size: 50px;
+}
+
+.Divider {
+  border-top: 3px dotted #141414;
+  width: 100%;
+}
+
+.primary {
+  font-weight: bold;
+  font-size: 20px;
+}
