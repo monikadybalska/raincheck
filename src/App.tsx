@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, createContext, useContext } from "react";
 import Weather from "./Weather";
 import Mapbox from "./Mapbox";
-import { APIProvider } from "@vis.gl/react-google-maps";
+import Locations from "./Locations";
 
 export type Hourly = {
   time: string;
@@ -148,6 +148,50 @@ export type WeatherType = {
     lat: number;
     lon: number;
   };
+  google: {
+    plus_code: {
+      compound_code: string;
+      global_code: string;
+    };
+    results: {
+      address_components: {
+        long_name: string;
+        short_name: string;
+        types: string[];
+      }[];
+      formatted_address: string;
+      geometry: {
+        bounds: {
+          northeast: {
+            lat: string;
+            lng: string;
+          };
+          southwest: {
+            lat: string;
+            lng: string;
+          };
+        };
+        location: {
+          lat: string;
+          lng: string;
+        };
+        location_type: string;
+        viewport: {
+          northeast: {
+            lat: string;
+            lng: string;
+          };
+          southwest: {
+            lat: string;
+            lng: string;
+          };
+        };
+      };
+      place_id: string;
+      types: string[];
+    }[];
+    status: string;
+  };
 };
 
 function App() {
@@ -155,7 +199,7 @@ function App() {
   const [data, setData] = useState<WeatherType | null>(null);
   const [formData, setFormData] = useState<string>("");
   const [message, setMessage] = useState<string>("Wait");
-  const [view, setView] = useState<string>("default");
+  const [locationsToggle, setLocationsToggle] = useState<boolean>(false);
   const ref = useRef<HTMLInputElement>(null);
 
   function updateLocations(locationName: string) {
@@ -188,13 +232,13 @@ function App() {
 
       function error() {
         setMessage(
-          "Unable to retrieve your location. Please try enabling geolocation services in your browser or type in a location below."
+          "Unable to retrieve your location. Please try enabling geolocation services in your browser or add a new location below."
         );
       }
 
       if (!navigator.geolocation) {
         setMessage(
-          "This browser doesn't support geolocation. Please type in a location below."
+          "This browser doesn't support geolocation. Please add a new location below."
         );
       } else {
         setMessage("Checking location...");
@@ -204,7 +248,7 @@ function App() {
       await fetch(`http://localhost:3000/${query}`)
         .then((res) => res.json())
         .then((result) => {
-          updateLocations(`${result.location.lat},${result.location.lon}`);
+          updateLocations(query);
           setData(result);
         });
     }
@@ -224,247 +268,27 @@ function App() {
   };
 
   const handleLocationsClick = () => {
-    setView("locations");
+    setLocationsToggle(!locationsToggle);
   };
 
   return (
     <div className="container">
       <div className="header">
-        <span
-          className="material-symbols-outlined xl locations"
-          onClick={handleLocationsClick}
-        >
-          location_on
-        </span>
         <h1>RainCheck</h1>
       </div>
       {data === null ? (
-        view === "default" ? (
-          <div className="status">{message}</div>
-        ) : (
-          <Mapbox />
-        )
+        <div className="status">{message}</div>
       ) : (
         <Weather data={data} />
       )}
-      <form onSubmit={handleSubmit} className="footer">
-        <label htmlFor="location">Check the weather in your location:</label>
-        <input
-          type="text"
-          name="location"
-          id="location"
-          onChange={handleChange}
-          value={formData}
-          autoComplete="country"
-          ref={ref}
-        />
-        <button>Check</button>
-      </form>
+      <div className="locations" onClick={() => handleLocationsClick()}>
+        <span className="material-symbols-outlined m">location_on</span>
+        <p>Manage locations</p>
+      </div>
+      {locationsToggle && <Locations data={data} setData={setData} />}
+      <div className="footer">© 2024 Chryja</div>
     </div>
   );
 }
 
 export default App;
-
-// import { useState, useEffect } from "react"
-// import Weather from "./Weather"
-// import { fetchWeatherApi } from 'openmeteo';
-
-// type WeatherType = {
-//   current: {
-//     time: Date;
-//     temperature: number;
-//     weatherCode: number;
-//     windSpeed: number;
-//     windDirection: number;
-//   };
-//   hourly: {
-//     time: Date[];
-//     temperature: Float32Array;
-//     precipitation: Float32Array;
-//   };
-//   daily: {
-//     time: Date[];
-//     weatherCode: Float32Array;
-//     temperatureMax: Float32Array;
-//     temperatureMin: Float32Array;
-//   };
-// }
-
-// function App() {
-//   const [lat, setLat] = useState(52.36);
-//   const [lon, setLon] = useState(4.90);
-//   const [data, setData] = useState([]);
-//   const [formData, setFormData] = useState({ location: "" })
-
-//   const getLocation = async () => {
-//     await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${formData.location}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`)
-//       .then(res => res.json())
-//       .then(result => {
-//         setLat(result.features[0].geometry.coordinates[1])
-//         setLon(result.features[0].geometry.coordinates[0])
-//       })
-//   }
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       const params = {
-//         latitude: [lat],
-//         longitude: [lon],
-//         current: 'temperature_2m,weather_code,wind_speed_10m,wind_direction_10m',
-//         hourly: 'temperature_2m,precipitation',
-//         daily: 'weather_code,temperature_2m_max,temperature_2m_min'
-//       };
-//       const url = 'https://api.open-meteo.com/v1/forecast';
-//       const responses = await fetchWeatherApi(url, params)
-
-//       // Helper function to form time ranges
-//       const range = (start: number, stop: number, step: number) =>
-//         Array.from({ length: (stop - start) / step }, (_, i) => start + i * step);
-
-//       // Process first location. Add a for-loop for multiple locations or weather models
-//       const response = responses[0];
-
-//       // Attributes for timezone and location
-//       const utcOffsetSeconds = response.utcOffsetSeconds();
-
-//       const current = response.current()!;
-//       const hourly = response.hourly()!;
-//       const daily = response.daily()!;
-
-//       // Note: The order of weather variables in the URL query and the indices below need to match!
-//       const weatherData = {
-//         current: {
-//           time: new Date((Number(current.time()) + utcOffsetSeconds) * 1000),
-//           temperature: current.variables(0)!.value(), // Current is only 1 value, therefore `.value()`
-//           weatherCode: current.variables(1)!.value(),
-//           windSpeed: current.variables(2)!.value(),
-//           windDirection: current.variables(3)!.value()
-//         },
-//         hourly: {
-//           time: range(Number(hourly.time()), Number(hourly.timeEnd()), hourly.interval()).map(
-//             (t) => new Date((t + utcOffsetSeconds) * 1000)
-//           ),
-//           temperature: hourly.variables(0)!.valuesArray()!, // `.valuesArray()` get an array of floats
-//           precipitation: hourly.variables(1)!.valuesArray()!,
-//         },
-//         daily: {
-//           time: range(Number(daily.time()), Number(daily.timeEnd()), daily.interval()).map(
-//             (t) => new Date((t + utcOffsetSeconds) * 1000)
-//           ),
-//           weatherCode: daily.variables(0)!.valuesArray()!,
-//           temperatureMax: daily.variables(1)!.valuesArray()!,
-//           temperatureMin: daily.variables(2)!.valuesArray()!,
-//         }
-//       };
-//       // `weatherData` now contains a simple structure with arrays for datetime and weather data
-//       setData(weatherData)
-//     }
-//     fetchData()
-//   }, [lat, lon])
-
-//   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     setFormData((currFormData) => {
-//       return { ...currFormData, [e.target.name]: e.target.value }
-//     })
-//   }
-
-//   const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault()
-//     getLocation()
-//   }
-
-//   return (
-//     <div className="container">
-//       <div className="header"><h1>RainCheck</h1></div>
-//       {Array.isArray(data) ? <h2>Loading weather...</h2> :
-//         <Weather data={data} />
-//       }
-//       <form onSubmit={handleSubmit} className="footer">
-//         <label htmlFor="location">Check the weather in your location:</label>
-//         <input type="text" name="location" id="location" onChange={handleChange} value={formData.location} />
-//         <button>Check</button>
-//       </form>
-//     </div>
-//   )
-// }
-
-// export default App
-
-// export type Timestamp = {
-//   "dt": number,
-//   "main": {
-//     "temp": number,
-//     "feels_like": number,
-//     "temp_min": number,
-//     "temp_max": number,
-//     "pressure": number,
-//     "sea_level": number,
-//     "grnd_level": number,
-//     "humidity": number,
-//     "temp_kf": number
-//   },
-//   "weather": [
-//     {
-//       "id": number,
-//       "main": string,
-//       "description": string,
-//       "icon": string
-//     }
-//   ],
-//   "clouds": {
-//     "all": number
-//   },
-//   "wind": {
-//     "speed": number,
-//     "deg": number,
-//     "gust": number
-//   },
-//   "visibility": number,
-//   "pop": number,
-//   "rain": {
-//     "3h": number
-//   },
-//   "sys": {
-//     "pod": string
-//   },
-//   "dt_txt": string
-// }
-
-// export type WeatherType = {
-//   "cod": string,
-//   "message": 0,
-//   "cnt": number,
-//   "list": Timestamp[],
-//   "city": {
-//     "id": number,
-//     "name": string,
-//     "coord": {
-//       "lat": number,
-//       "lon": number
-//     },
-//     "country": string,
-//     "population": number,
-//     "timezone": number,
-//     "sunrise": number,
-//     "sunset": number
-//   }
-// }
-
-// const fetchData = async () => {
-//   await fetch(`${import.meta.env.VITE_API_URL}/forecast/?lat=${lat}&lon=${lon}&units=metric&APPID=${import.meta.env.VITE_API_KEY}`)
-//     .then(res => res.json())
-//     .then(result => {
-//       setData(result)
-//       console.log(result);
-//     })
-// }
-
-// const getLocation = async () => {
-//   await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${formData.location}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`)
-//     .then(res => res.json())
-//     .then(result => {
-//       setLat(result.features[0].geometry.coordinates[1])
-//       setLon(result.features[0].geometry.coordinates[0])
-//     })
-// }

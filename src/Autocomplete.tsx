@@ -1,12 +1,5 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  FormEvent,
-  useContext,
-} from "react";
+import React, { useEffect, useState, useCallback, FormEvent } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { LocationsContext } from "./Locations";
 
 interface Props {
   onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void;
@@ -14,7 +7,7 @@ interface Props {
 
 // This is a custom built autocomplete component using the "Autocomplete Service" for predictions
 // and the "Places Service" for place details
-export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
+export const AutocompleteCustom = () => {
   const map = useMap();
   const places = useMapsLibrary("places");
 
@@ -81,72 +74,43 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
         sessionToken,
       };
 
-      const detailsRequestCallback = (
-        placeDetails: google.maps.places.PlaceResult | null
-      ) => {
-        onPlaceSelect(placeDetails);
-        setPredictionResults([]);
-        setInputValue(placeDetails?.formatted_address ?? "");
-        setSessionToken(new places.AutocompleteSessionToken());
-      };
+      //   const detailsRequestCallback = (
+      //     placeDetails: google.maps.places.PlaceResult | null
+      //   ) => {
+      //     onPlaceSelect(placeDetails);
+      //     setPredictionResults([]);
+      //     setInputValue(placeDetails?.formatted_address ?? "");
+      //     setSessionToken(new places.AutocompleteSessionToken());
+      //   };
 
-      placesService?.getDetails(detailRequestOptions, detailsRequestCallback);
+      //   placesService?.getDetails(detailRequestOptions, detailsRequestCallback);
     },
-    [onPlaceSelect, places, placesService, sessionToken]
+    [places, placesService, sessionToken]
   );
 
-  const locations = useContext(LocationsContext)?.locations;
-  const setLocations = useContext(LocationsContext)?.setLocations;
-
-  const handleLocationAdd = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (setLocations) {
-      console.log("here");
-      if (locations && !locations.includes(inputValue)) {
-        const newLocations = locations.slice();
-        newLocations.push(inputValue.toLowerCase());
-        setLocations(newLocations);
-        localStorage.setItem("locations", JSON.stringify(newLocations));
-      } else {
-        setLocations([`${inputValue.toLowerCase()}`]);
-        localStorage.setItem(
-          "locations",
-          JSON.stringify([`${inputValue.toLowerCase()}`])
-        );
-      }
-    }
-  };
-
   return (
-    <div className="map-search">
-      <div className="autocomplete-container">
-        <input
-          value={inputValue}
-          onInput={(event: FormEvent<HTMLInputElement>) => onInputChange(event)}
-          placeholder="Search for a place"
-          className="map-search-input text"
-        />
-        <div className="predictions">
-          {predictionResults.length > 0 && (
-            <ul className="custom-list">
-              {predictionResults.map(({ place_id, description }) => {
-                return (
-                  <li
-                    key={place_id}
-                    className="custom-list-item"
-                    onClick={() => handleSuggestionClick(place_id)}
-                  >
-                    {description}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      </div>
-      <button onClick={handleLocationAdd} className="map-search-input button">
-        Add location
-      </button>
+    <div className="autocomplete-container">
+      <input
+        value={inputValue}
+        onInput={(event: FormEvent<HTMLInputElement>) => onInputChange(event)}
+        placeholder="Search for a place"
+      />
+
+      {predictionResults.length > 0 && (
+        <ul className="custom-list">
+          {predictionResults.map(({ place_id, description }) => {
+            return (
+              <li
+                key={place_id}
+                className="custom-list-item"
+                onClick={() => handleSuggestionClick(place_id)}
+              >
+                {description}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 };

@@ -29,9 +29,10 @@ body {
 .header {
   background-color: whitesmoke;
   width: 100%;
+  height: 82px;
   border-radius: 8px 8px 0 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
 }
 
@@ -48,9 +49,9 @@ body {
 
 input {
   font-family: "Lato", sans-serif;
-  margin-left: 10px;
+  /* margin-left: 10px; */
   font-size: 15px;
-  padding: 8px;
+  /* padding: 8px; */
   border-radius: 2px 0 0 2px;
   border: 1.6px solid black;
 }
@@ -86,6 +87,7 @@ button:hover {
   align-items: center;
   justify-content: center;
   flex-grow: 1;
+  min-height: 300px;
   background-color: lightgrey;
   color: black;
   padding: 30px 50px 0 50px;
@@ -206,13 +208,131 @@ h1 {
 }
 
 .location {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 20px;
-  margin: 10px;
+  background-color: lightgrey;
+  color: black;
+  border: 1px solid white;
+}
+
+/* .location > * {
+  padding: 20px;
+} */
+
+.location-name {
+  padding: 20px;
+  width: 100%;
+  text-transform: capitalize;
+}
+
+.new {
+  background-color: white;
+}
+
+.new > * {
+  padding: 0;
+  margin: 0;
+  font-weight: 700;
+}
+
+.location:hover {
+  cursor: pointer;
+}
+
+.location-button {
+  background-color: rgba(162, 162, 162, 0.574);
+  margin-right: 20px;
+  padding: 5px;
+  border-radius: 30%;
 }
 
 .locations {
+  color: whitesmoke;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: black;
+  border-radius: 8px 0 0 0;
+  padding: 0 20px 0 20px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.locations:hover {
+  cursor: pointer;
+}
+
+.map-search {
+  display: flex;
+  max-width: 100vh;
+}
+
+.autocomplete-control {
+  display: flex;
+  max-width: 100%;
+}
+
+.autocomplete-container > * {
+  max-width: 100vh;
+  padding-left: 8px;
+  padding-right: 8px;
+  border: 2px solid black;
+  border-top: none;
+}
+
+.map-search-input {
+  height: 53px;
+  padding-top: 0;
+  padding-bottom: 0;
+  box-sizing: border-box;
+}
+
+.map-search-input.text {
+  max-width: 100vh;
+}
+
+.map-search-input.button {
+  border-bottom: 2px solid black;
+  border-radius: 0 0 0 0;
+  min-width: fit-content;
+}
+
+.predictions {
+  background-color: white;
   color: black;
-  margin-left: 20px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.custom-list {
+  list-style-type: none;
+  font-family: "Lato", sans-serif;
+  padding: 0;
+  margin: 0;
+}
+
+.custom-list :last-child {
+  border-bottom: none;
+}
+
+.custom-list-item {
+  padding: 0;
+  margin: 0;
+  padding-top: 10%;
+  padding-bottom: 5%;
+  border-bottom: 1.5px solid grey;
+}
+
+.custom-list-item:hover {
+  cursor: pointer;
+  background-color: lightgrey;
+}
+
+.m {
+  font-size: 30px;
 }
 
 h2 {

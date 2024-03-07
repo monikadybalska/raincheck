@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { APIProvider, ControlPosition, Map } from "@vis.gl/react-google-maps";
+import { LocationsContext } from "./Locations";
 
 import { CustomMapControl } from "./map-control";
 import MapHandler from "./map-handler";
@@ -8,8 +9,8 @@ export type AutocompleteMode = { id: string; label: string };
 
 export default function Mapbox() {
   const selectedAutocompleteMode = {
-    id: "classic",
-    label: "Google Autocomplete Widget",
+    id: "custom",
+    label: "Custom Build",
   };
 
   const [selectedPlace, setSelectedPlace] =
@@ -27,7 +28,6 @@ export default function Mapbox() {
 
       <CustomMapControl
         controlPosition={ControlPosition.TOP}
-        selectedAutocompleteMode={selectedAutocompleteMode}
         onPlaceSelect={setSelectedPlace}
       />
 
