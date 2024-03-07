@@ -5,6 +5,8 @@ import { useEffect, useState, useContext, createContext } from "react";
 type LocationsContextType = {
   ["locations"]: string[] | null;
   ["setLocations"]: React.Dispatch<React.SetStateAction<string[] | null>>;
+  ["setSelectedLocation"]: React.Dispatch<React.SetStateAction<string | null>>;
+  ["handleLocationClick"]: (location: string) => Promise<void>;
 };
 
 export const LocationsContext = createContext<LocationsContextType | null>(
@@ -24,6 +26,7 @@ export default function Locations({
   const [locations, setLocations] = useState<string[] | null>(
     locationsString ? JSON.parse(locationsString) : null
   );
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
   const handleLocationClick = async (location: string) => {
     await fetch(`http://localhost:3000/${location}`)
@@ -31,6 +34,7 @@ export default function Locations({
       .then((result) => {
         setData(result);
       });
+    setSelectedLocation(location);
   };
 
   const handleMapboxOpen = () => {
@@ -63,10 +67,18 @@ export default function Locations({
 
   function handleDeleteLocation(location: string) {
     if (locations !== null) {
-      const index = locations.indexOf(location);
-      const newLocations = locations.toSpliced(index, 1);
-      setLocations(newLocations);
-      localStorage.setItem("locations", JSON.stringify(newLocations));
+      if (locations.length > 1) {
+        const index = locations.indexOf(location);
+        const newLocations = locations.toSpliced(index, 1);
+        setLocations(newLocations);
+        localStorage.setItem("locations", JSON.stringify(newLocations));
+      } else {
+        localStorage.removeItem("locations");
+        setLocations(null);
+      }
+      if (selectedLocation === location) {
+        setData(null);
+      }
     } else {
       console.log("Error");
     }
@@ -77,13 +89,25 @@ export default function Locations({
   // }, []);
 
   return (
-    <LocationsContext.Provider value={{ locations, setLocations }}>
+    <LocationsContext.Provider
+      value={{
+        locations,
+        setLocations,
+        setSelectedLocation,
+        handleLocationClick,
+      }}
+    >
       <div>
         {locations &&
           locations.map((location) => (
-            <div className="location">
+            <div
+              key={location}
+              className={
+                selectedLocation === location ? "location selected" : "location"
+              }
+            >
               <div
-                className="location-name"
+                className="location-text"
                 onClick={() => handleLocationClick(location.toLowerCase())}
               >
                 {location}
@@ -97,8 +121,8 @@ export default function Locations({
             </div>
           ))}
         <div className="new location" onClick={handleMapboxOpen}>
-          <p>Add new location</p>
-          <span className="material-symbols-outlined">
+          <div className="new location-text">Browse more locations</div>
+          <span className="material-symbols-outlined new location-button">
             {mapboxToggle ? "remove" : "add"}
           </span>
         </div>

@@ -27,7 +27,7 @@ export default function Mapbox() {
       />
 
       <CustomMapControl
-        controlPosition={ControlPosition.TOP}
+        controlPosition={ControlPosition.LEFT}
         onPlaceSelect={setSelectedPlace}
       />
 

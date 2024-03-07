@@ -232,7 +232,7 @@ function App() {
 
       function error() {
         setMessage(
-          "Unable to retrieve your location. Please try enabling geolocation services in your browser or add a new location below."
+          "Unable to retrieve your location. Please try enabling geolocation services in your browser or select a location below."
         );
       }
 
@@ -276,16 +276,16 @@ function App() {
       <div className="header">
         <h1>RainCheck</h1>
       </div>
-      {data === null ? (
-        <div className="status">{message}</div>
-      ) : (
-        <Weather data={data} />
-      )}
       <div className="locations" onClick={() => handleLocationsClick()}>
         <span className="material-symbols-outlined m">location_on</span>
         <p>Manage locations</p>
       </div>
       {locationsToggle && <Locations data={data} setData={setData} />}
+      {data === null ? (
+        <div className="status">{message}</div>
+      ) : (
+        <Weather data={data} />
+      )}
       <div className="footer">© 2024 Chryja</div>
     </div>
   );

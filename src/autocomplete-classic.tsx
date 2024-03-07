@@ -97,22 +97,29 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
 
   const locations = useContext(LocationsContext)?.locations;
   const setLocations = useContext(LocationsContext)?.setLocations;
+  const setSelectedLocation = useContext(LocationsContext)?.setSelectedLocation;
+  const handleLocationClick = useContext(LocationsContext)?.handleLocationClick;
 
   const handleLocationAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (setLocations) {
       console.log("here");
-      if (locations && !locations.includes(inputValue)) {
-        const newLocations = locations.slice();
-        newLocations.push(inputValue.toLowerCase());
-        setLocations(newLocations);
-        localStorage.setItem("locations", JSON.stringify(newLocations));
+      if (locations) {
+        if (!locations.includes(inputValue.toLowerCase())) {
+          const newLocations = locations.slice();
+          newLocations.push(inputValue.toLowerCase());
+          setLocations(newLocations);
+          localStorage.setItem("locations", JSON.stringify(newLocations));
+        }
       } else {
         setLocations([`${inputValue.toLowerCase()}`]);
         localStorage.setItem(
           "locations",
           JSON.stringify([`${inputValue.toLowerCase()}`])
         );
+      }
+      if (handleLocationClick) {
+        handleLocationClick(inputValue.toLowerCase());
       }
     }
   };
@@ -136,6 +143,9 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
                     className="custom-list-item"
                     onClick={() => handleSuggestionClick(place_id)}
                   >
+                    <span className="material-symbols-outlined s">
+                      location_on
+                    </span>
                     {description}
                   </li>
                 );
@@ -145,7 +155,7 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
         </div>
       </div>
       <button onClick={handleLocationAdd} className="map-search-input button">
-        Add location
+        Add to locations
       </button>
     </div>
   );
