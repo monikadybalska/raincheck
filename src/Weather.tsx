@@ -56,7 +56,13 @@ export function getIcon(weatherMain: string) {
   return icon;
 }
 
-export default function Weather({ data }: { data: WeatherType }) {
+export default function Weather({
+  data,
+  setData,
+}: {
+  data: WeatherType;
+  setData: React.Dispatch<React.SetStateAction<WeatherType | null>>;
+}) {
   const currentDate = new Date(Date.now()).toISOString();
   const currentData = data.timelines.hourly.filter(
     (timestamp) => timestamp.time.slice(0, 13) === currentDate.slice(0, 13)
@@ -67,9 +73,13 @@ export default function Weather({ data }: { data: WeatherType }) {
         weatherCodes.weatherCode[currentData.values.weatherCode]
       }`}
     >
+      {/* <div onClick={() => setData(null)} className="return">
+        Back to all locations
+      </div> */}
       <span className="material-symbols-outlined xl">
         {getIcon(weatherCodes.weatherCode[currentData.values.weatherCode])}
       </span>
+      <h3>{data.google.results[0].address_components[0].short_name}</h3>
       <h2>{currentData.values.temperature} °C</h2>
       <h3>{weatherCodes.weatherCode[currentData.values.weatherCode]}</h3>
       <Divider />

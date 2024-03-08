@@ -1,10 +1,13 @@
 import { WeatherType } from "./App";
 import Mapbox from "./Mapbox";
 import { useEffect, useState, useContext, createContext } from "react";
+import { weatherCodes } from "./weatherCodes";
 
 type LocationsContextType = {
-  ["locations"]: string[] | null;
-  ["setLocations"]: React.Dispatch<React.SetStateAction<string[] | null>>;
+  ["locations"]: { [key: string]: WeatherType } | null;
+  ["setLocations"]: React.Dispatch<
+    React.SetStateAction<{ [key: string]: WeatherType } | null>
+  >;
   ["setSelectedLocation"]: React.Dispatch<React.SetStateAction<string | null>>;
   ["handleLocationClick"]: (location: string) => Promise<void>;
 };
@@ -22,11 +25,32 @@ export default function Locations({
 }) {
   const [mapboxToggle, setMapboxToggle] = useState<boolean>(false);
   const locationsString = localStorage.getItem("locations");
-  // const locationsArray = locationsString ? JSON.parse(locationsString) : null;
-  const [locations, setLocations] = useState<string[] | null>(
-    locationsString ? JSON.parse(locationsString) : null
-  );
+  const locationsArray: string[] | null = locationsString
+    ? JSON.parse(locationsString)
+    : null;
+  const [locations, setLocations] = useState<{
+    [key: string]: WeatherType;
+  } | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+
+  const fetchLocationsData = async () => {
+    if (locationsArray) {
+      const locationData: { [key: string]: WeatherType } = {};
+      for (let i = 0; i < locationsArray.length; i++) {
+        await fetch(`http://localhost:3000/${locationsArray[i]}`)
+          .then((res) => res.json())
+          .then((result) => {
+            locationData[locationsArray[i]] = result;
+          });
+      }
+      console.log(locationData);
+      setLocations(locationData);
+    } else setLocations(null);
+  };
+
+  useEffect(() => {
+    fetchLocationsData();
+  }, []);
 
   const handleLocationClick = async (location: string) => {
     await fetch(`http://localhost:3000/${location}`)
@@ -65,13 +89,15 @@ export default function Locations({
   //     : localStorage.setItem("locations", `["${location}"]`);
   // }
 
-  function handleDeleteLocation(location: string) {
-    if (locations !== null) {
-      if (locations.length > 1) {
-        const index = locations.indexOf(location);
-        const newLocations = locations.toSpliced(index, 1);
+  const handleDeleteLocation = (location: string) => {
+    if (locations !== null && locationsArray !== null) {
+      if (Object.keys(locations).length > 1) {
+        const index = locationsArray.indexOf(location);
+        const newLocationsArray = locationsArray.toSpliced(index, 1);
+        const newLocations = { ...locations };
+        delete newLocations.location;
         setLocations(newLocations);
-        localStorage.setItem("locations", JSON.stringify(newLocations));
+        localStorage.setItem("locations", JSON.stringify(newLocationsArray));
       } else {
         localStorage.removeItem("locations");
         setLocations(null);
@@ -82,11 +108,7 @@ export default function Locations({
     } else {
       console.log("Error");
     }
-  }
-
-  // useEffect(() => {
-  //   // locationsArray ? fetchLocationNames() : setLocations(null);
-  // }, []);
+  };
 
   return (
     <LocationsContext.Provider
@@ -97,9 +119,9 @@ export default function Locations({
         handleLocationClick,
       }}
     >
-      <div>
+      <div className="locations">
         {locations &&
-          locations.map((location) => (
+          Object.keys(locations).map((location) => (
             <div
               key={location}
               className={
@@ -107,27 +129,46 @@ export default function Locations({
               }
             >
               <div
-                className="location-text"
+                className="location-content"
                 onClick={() => handleLocationClick(location.toLowerCase())}
               >
-                {location}
+                <div className="location-row">
+                  <div className="location-text">{location}</div>
+                </div>
+                <div className="location-row">
+                  <div className="location-text temperature">
+                    {locations[location].timelines.hourly[0].values.temperature}{" "}
+                    °C
+                  </div>
+                </div>
+                <div className="location-row">
+                  <div className="location-text">
+                    {
+                      weatherCodes.weatherCode[
+                        locations[location].timelines.hourly[0].values
+                          .weatherCode
+                      ]
+                    }
+                  </div>
+                </div>
               </div>
-              <span
-                className="material-symbols-outlined location-button"
+              <div
+                className="location-button"
                 onClick={() => handleDeleteLocation(location.toLowerCase())}
               >
-                delete
-              </span>
+                <span className="material-symbols-outlined ">delete</span>
+                Delete
+              </div>
             </div>
           ))}
-        <div className="new location" onClick={handleMapboxOpen}>
-          <div className="new location-text">Browse more locations</div>
-          <span className="material-symbols-outlined new location-button">
-            {mapboxToggle ? "remove" : "add"}
-          </span>
-        </div>
-        {mapboxToggle && <Mapbox />}
       </div>
+      <div className="browse-locations" onClick={handleMapboxOpen}>
+        <div className="browse-locations-text">Browse more locations</div>
+        <span className="material-symbols-outlined browse-locations-button">
+          {mapboxToggle ? "remove" : "add"}
+        </span>
+      </div>
+      {mapboxToggle && <Mapbox />}
     </LocationsContext.Provider>
   );
 }

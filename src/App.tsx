@@ -274,18 +274,20 @@ function App() {
   return (
     <div className="container">
       <div className="header">
-        <h1>RainCheck</h1>
+        <h1 onClick={() => setData(null)}>RainCheck</h1>
       </div>
-      <div className="locations" onClick={() => handleLocationsClick()}>
+      {data === null ? (
+        <Locations data={data} setData={setData} />
+      ) : (
+        // <div className="status">{message}</div>
+        <Weather data={data} setData={setData} />
+      )}
+      {/* )} */}
+      {/* <div className="locations" onClick={() => handleLocationsClick()}>
         <span className="material-symbols-outlined m">location_on</span>
         <p>Manage locations</p>
-      </div>
-      {locationsToggle && <Locations data={data} setData={setData} />}
-      {data === null ? (
-        <div className="status">{message}</div>
-      ) : (
-        <Weather data={data} />
-      )}
+      </div> */}
+      {/* {locationsToggle && <Locations data={data} setData={setData} />} */}
       <div className="footer">© 2024 Chryja</div>
     </div>
   );

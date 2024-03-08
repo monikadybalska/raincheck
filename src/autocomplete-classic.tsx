@@ -100,27 +100,37 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
   const setSelectedLocation = useContext(LocationsContext)?.setSelectedLocation;
   const handleLocationClick = useContext(LocationsContext)?.handleLocationClick;
 
-  const handleLocationAdd = (e: React.FormEvent) => {
+  const handleLocationAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (setLocations) {
-      console.log("here");
-      if (locations) {
-        if (!locations.includes(inputValue.toLowerCase())) {
-          const newLocations = locations.slice();
-          newLocations.push(inputValue.toLowerCase());
-          setLocations(newLocations);
-          localStorage.setItem("locations", JSON.stringify(newLocations));
-        }
-      } else {
-        setLocations([`${inputValue.toLowerCase()}`]);
-        localStorage.setItem(
-          "locations",
-          JSON.stringify([`${inputValue.toLowerCase()}`])
-        );
-      }
-      if (handleLocationClick) {
-        handleLocationClick(inputValue.toLowerCase());
-      }
+      await fetch(`http://localhost:3000/${inputValue.toLowerCase()}`)
+        .then((res) => res.json())
+        .then((result) => {
+          if (locations) {
+            const newLocations = { ...locations };
+            const newLocationsArray = Object.keys(locations);
+            setLocations({
+              ...newLocations,
+              [inputValue.toLowerCase()]: result,
+            });
+            if (!newLocationsArray.includes(inputValue)) {
+              newLocationsArray.push(inputValue.toLowerCase());
+              localStorage.setItem(
+                "locations",
+                JSON.stringify(newLocationsArray)
+              );
+            }
+          } else {
+            setLocations({ [`${inputValue.toLowerCase()}`]: result });
+            localStorage.setItem(
+              "locations",
+              JSON.stringify([`${inputValue.toLowerCase()}`])
+            );
+          }
+          if (handleLocationClick) {
+            handleLocationClick(inputValue.toLowerCase());
+          }
+        });
     }
   };
 
