@@ -239,7 +239,9 @@ export default function App() {
     const currentLocations = new Map(locations);
     const geolocationSuccess = async (position: GeolocationPosition) => {
       const google = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=52.3563,4.8096&result_type=locality&key=${
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
+          position.coords.latitude
+        },${position.coords.longitude}&result_type=locality&key=${
           import.meta.env.VITE_GOOGLE_API_KEY
         }`
       ).then((res) => res.json());
@@ -293,7 +295,6 @@ export default function App() {
             google: resolvedNamePromises[i],
           });
         }
-        return currentLocations;
         setLocations(currentLocations);
         !displayedWeather &&
           setDisplayedWeather(currentLocations.values().next().value);
