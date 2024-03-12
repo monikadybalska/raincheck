@@ -235,11 +235,25 @@ export default function App() {
     setSelectedLocation(location);
   };
 
+  function getCurrentPosition(): Promise<GeolocationPosition> | null {
+    if (!navigator.geolocation) {
+      setMessage(
+        "This browser doesn't support geolocation. Please add a new location below."
+      );
+      return null;
+    } else {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+    }
+  }
+
   const fetchData = async () => {
     const currentLocations = new Map(locations);
-    const fetchCurrentLocationData = async () => {
-      const position = await getCurrentPosition();
-      if (position instanceof GeolocationPosition) {
+    const fetchGeolocationData = async () => {
+      try {
+        const position = await getCurrentPosition();
+        if (!position) return null;
         const google = await fetch(
           `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
             position.coords.latitude
@@ -254,23 +268,10 @@ export default function App() {
           `${position.coords.latitude},${position.coords.longitude}`,
           { ...weather, google }
         );
-        // currentLocations
-        //   ? setLocations(
-        //       new Map([
-        //         ["52.3563,4.8096", { ...weather, google }],
-        //         ...currentLocations,
-        //       ])
-        //     )
-        //   : setLocations(new Map([["52.3563,4.8096", { ...weather, google }]]));
         return currentLocations;
+      } catch (e: unknown) {
+        return null;
       }
-      return null;
-      // .then(() => setLoadingGeolocation(false));
-    };
-    const geolocationError = (e: unknown) => {
-      console.log(e);
-      return null;
-      // setLoadingGeolocation(false);
     };
 
     const fetchLocalData = async () => {
@@ -305,26 +306,7 @@ export default function App() {
       return null;
     };
 
-    function promiseError(e: unknown) {
-      console.log(e);
-      return null;
-    }
-
-    function getCurrentPosition(): Promise<GeolocationPosition> | null {
-      if (!navigator.geolocation) {
-        setMessage(
-          "This browser doesn't support geolocation. Please add a new location below."
-        );
-        setLoadingGeolocation(false);
-        return null;
-      } else {
-        return new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject);
-        });
-      }
-    }
-
-    const currentLocation = await fetchCurrentLocationData();
+    const currentLocation = await fetchGeolocationData();
     const localData = await fetchLocalData();
     if (!currentLocation && !localData) {
       return null;
@@ -333,13 +315,6 @@ export default function App() {
     } else if (!currentLocation) {
       return new Map(localData);
     } else return new Map([...currentLocation, ...localData]);
-    // setDisplayedWeather({ ...weather, google });
-    // console.log("geolocation done!");
-    // await fetchLocalData().then((result) => {
-    //   // setLocations(result);
-    //   !displayedWeather &&
-    //     setDisplayedWeather(currentLocations.values().next().value);
-    // });
   };
 
   useEffect(() => {
@@ -374,8 +349,8 @@ export default function App() {
         </div>
         {/* {loadingGeolocation ? (
           <div className="status">{message}</div>
-        ) : (
-          <> */}
+        ) : ( */}
+        {/* <> */}
         {loadingLocalStorageData ? (
           <div className="status">Loading...</div>
         ) : (
@@ -387,8 +362,8 @@ export default function App() {
             )}
           </>
         )}
-        {/* </> */}
-        {/* )} */}
+        {/* </>
+        )} */}
         <div className="footer">© 2024 Chryja</div>
       </div>
     </LocationsContext.Provider>
