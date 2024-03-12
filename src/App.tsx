@@ -237,34 +237,40 @@ export default function App() {
 
   const fetchData = async () => {
     const currentLocations = new Map(locations);
-    const geolocationSuccess = async (position: GeolocationPosition) => {
-      const google = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=52.3563,4.8096&result_type=locality&key=${
-          import.meta.env.VITE_GOOGLE_API_KEY
-        }`
-      ).then((res) => res.json());
-      await fetch("http://localhost:3000/52.3563,4.8096")
-        .then((res) => res.json())
-        .then((result: WeatherData) => {
-          currentLocations
-            ? setLocations(
-                new Map([
-                  ["52.3563,4.8096", { ...result, google }],
-                  ...currentLocations,
-                ])
-              )
-            : setLocations(
-                new Map([["52.3563,4.8096", { ...result, google }]])
-              );
-          setDisplayedWeather({ ...result, google });
-        })
-        .then(() => setLoadingGeolocation(false));
+    const fetchCurrentLocationData = async () => {
+      const position = await getCurrentPosition();
+      if (position instanceof GeolocationPosition) {
+        const google = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
+            position.coords.latitude
+          },${position.coords.longitude}&result_type=locality&key=${
+            import.meta.env.VITE_GOOGLE_API_KEY
+          }`
+        ).then((res) => res.json());
+        const weather: WeatherData = await fetch(
+          "http://localhost:3000/52.3563,4.8096"
+        ).then((res) => res.json());
+        currentLocations.set(
+          `${position.coords.latitude},${position.coords.longitude}`,
+          { ...weather, google }
+        );
+        // currentLocations
+        //   ? setLocations(
+        //       new Map([
+        //         ["52.3563,4.8096", { ...weather, google }],
+        //         ...currentLocations,
+        //       ])
+        //     )
+        //   : setLocations(new Map([["52.3563,4.8096", { ...weather, google }]]));
+        return currentLocations;
+      }
+      return null;
+      // .then(() => setLoadingGeolocation(false));
     };
-    const geolocationError = () => {
-      setMessage(
-        "Unable to retrieve your location. Please try enabling geolocation services in your browser or select a location below."
-      );
-      setLoadingGeolocation(false);
+    const geolocationError = (e: unknown) => {
+      console.log(e);
+      return null;
+      // setLoadingGeolocation(false);
     };
 
     const fetchLocalData = async () => {
@@ -293,32 +299,56 @@ export default function App() {
             google: resolvedNamePromises[i],
           });
         }
+        console.log("local data done!");
         return currentLocations;
-        setLocations(currentLocations);
-        !displayedWeather &&
-          setDisplayedWeather(currentLocations.values().next().value);
       }
+      return null;
     };
 
-    if (!navigator.geolocation) {
-      setMessage(
-        "This browser doesn't support geolocation. Please add a new location below."
-      );
-      setLoadingGeolocation(false);
-    } else {
-      setMessage("Checking location...");
-      navigator.geolocation.getCurrentPosition(
-        geolocationSuccess,
-        geolocationError
-      );
+    function promiseError(e: unknown) {
+      console.log(e);
+      return null;
     }
 
-    await fetchLocalData();
+    function getCurrentPosition(): Promise<GeolocationPosition> | null {
+      if (!navigator.geolocation) {
+        setMessage(
+          "This browser doesn't support geolocation. Please add a new location below."
+        );
+        setLoadingGeolocation(false);
+        return null;
+      } else {
+        return new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+      }
+    }
+
+    const currentLocation = await fetchCurrentLocationData();
+    const localData = await fetchLocalData();
+    if (!currentLocation && !localData) {
+      return null;
+    } else if (!localData) {
+      return new Map(currentLocation);
+    } else if (!currentLocation) {
+      return new Map(localData);
+    } else return new Map([...currentLocation, ...localData]);
+    // setDisplayedWeather({ ...weather, google });
+    // console.log("geolocation done!");
+    // await fetchLocalData().then((result) => {
+    //   // setLocations(result);
+    //   !displayedWeather &&
+    //     setDisplayedWeather(currentLocations.values().next().value);
+    // });
   };
 
   useEffect(() => {
     async function load() {
-      await fetchData();
+      const newLocations = await fetchData();
+      setLocations(newLocations);
+      newLocations
+        ? setDisplayedWeather(newLocations.values().next().value)
+        : setDisplayedWeather(null);
       setLoadingLocalStorageData(false);
     }
     load();
@@ -342,23 +372,23 @@ export default function App() {
           <span className="material-symbols-outlined menu">menu</span>
           <h1 onClick={() => setDisplayedWeather(null)}>RainCheck</h1>
         </div>
-        {loadingGeolocation ? (
+        {/* {loadingGeolocation ? (
           <div className="status">{message}</div>
         ) : (
+          <> */}
+        {loadingLocalStorageData ? (
+          <div className="status">Loading...</div>
+        ) : (
           <>
-            {loadingLocalStorageData ? (
-              <div className="status">Loading...</div>
+            {displayedWeather === null || displayedWeather === undefined ? (
+              <Locations />
             ) : (
-              <>
-                {displayedWeather === null || displayedWeather === undefined ? (
-                  <Locations />
-                ) : (
-                  <LocationWeather displayedWeather={displayedWeather} />
-                )}
-              </>
+              <LocationWeather displayedWeather={displayedWeather} />
             )}
           </>
         )}
+        {/* </> */}
+        {/* )} */}
         <div className="footer">© 2024 Chryja</div>
       </div>
     </LocationsContext.Provider>
