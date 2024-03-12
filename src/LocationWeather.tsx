@@ -1,5 +1,5 @@
 import "./index.css";
-import { WeatherData } from "./App";
+import { WeatherData } from "./types/Interfaces";
 import { weatherCodes } from "./weatherCodes";
 import HourlyWeather from "./HourlyWeather";
 import DailyWeather from "./DailyWeather";
