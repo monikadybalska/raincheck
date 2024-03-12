@@ -1,6 +1,7 @@
 import { weatherCodes } from "./weatherCodes";
 import { useContext } from "react";
-import { WeatherData, LocationsContext, LocationsContextType } from "./App";
+import { WeatherData, LocationsContextType } from "./types/Interfaces";
+import { LocationsContext } from "./App";
 
 export default function Location({
   locationCoordinates,

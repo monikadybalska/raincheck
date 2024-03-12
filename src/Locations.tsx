@@ -1,4 +1,5 @@
-import { LocationsContext, LocationsContextType } from "./App";
+import { LocationsContext } from "./App";
+import { LocationsContextType } from "./types/Interfaces";
 import Mapbox from "./Mapbox";
 import { useState, useContext } from "react";
 import Location from "./Location";

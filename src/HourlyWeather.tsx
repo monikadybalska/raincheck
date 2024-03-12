@@ -1,4 +1,4 @@
-import { WeatherData, Hourly } from "./App";
+import { WeatherData, Hourly } from "./types/Interfaces";
 import { getIcon } from "./LocationWeather";
 import { weatherCodes } from "./weatherCodes";
 import { useRef } from "react";

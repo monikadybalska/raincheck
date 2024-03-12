@@ -6,7 +6,8 @@ import React, {
   useContext,
 } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { LocationsContext, WeatherData, LocationsContextType } from "./App";
+import { LocationsContext } from "./App";
+import { WeatherData, LocationsContextType } from "./types/Interfaces";
 
 interface Props {
   onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void;
