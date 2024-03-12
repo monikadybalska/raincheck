@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef, createContext, useContext } from "react";
-import Weather from "./Weather";
-import Mapbox from "./Mapbox";
+import { useState, useEffect, createContext } from "react";
+import LocationWeather from "./LocationWeather";
 import Locations from "./Locations";
 
-export type Hourly = {
+export interface Hourly {
   time: string;
   values: {
     cloudBase: number;
@@ -36,9 +35,9 @@ export type Hourly = {
     windGust: number;
     windSpeed: number;
   };
-};
+}
 
-export type Daily = {
+export interface Daily {
   time: string;
   values: {
     cloudBaseAvg: number;
@@ -137,9 +136,9 @@ export type Daily = {
     windSpeedMax: number;
     windSpeedMin: number;
   };
-};
+}
 
-export type WeatherType = {
+export interface WeatherData {
   timelines: {
     hourly: Hourly[];
     daily: Daily[];
@@ -148,149 +147,221 @@ export type WeatherType = {
     lat: number;
     lon: number;
   };
-  google: {
-    plus_code: {
-      compound_code: string;
-      global_code: string;
-    };
-    results: {
-      address_components: {
-        long_name: string;
-        short_name: string;
-        types: string[];
-      }[];
-      formatted_address: string;
-      geometry: {
-        bounds: {
-          northeast: {
-            lat: string;
-            lng: string;
-          };
-          southwest: {
-            lat: string;
-            lng: string;
-          };
-        };
-        location: {
+  google?: GoogleGeocodingData;
+}
+
+export interface GoogleGeocodingData {
+  plus_code: {
+    compound_code: string;
+    global_code: string;
+  };
+  results: {
+    address_components: {
+      long_name: string;
+      short_name: string;
+      types: string[];
+    }[];
+    formatted_address: string;
+    geometry: {
+      bounds: {
+        northeast: {
           lat: string;
           lng: string;
         };
-        location_type: string;
-        viewport: {
-          northeast: {
-            lat: string;
-            lng: string;
-          };
-          southwest: {
-            lat: string;
-            lng: string;
-          };
+        southwest: {
+          lat: string;
+          lng: string;
         };
       };
-      place_id: string;
-      types: string[];
-    }[];
-    status: string;
-  };
-};
+      location: {
+        lat: string;
+        lng: string;
+      };
+      location_type: string;
+      viewport: {
+        northeast: {
+          lat: string;
+          lng: string;
+        };
+        southwest: {
+          lat: string;
+          lng: string;
+        };
+      };
+    };
+    place_id: string;
+    types: string[];
+  }[];
+  status: string;
+}
 
-function App() {
-  const [location, setLocation] = useState<string | null>(null);
-  const [data, setData] = useState<WeatherType | null>(null);
-  const [formData, setFormData] = useState<string>("");
+export interface LocationsContextType {
+  ["localStorageData"]: string[] | null;
+  ["locations"]: Map<string, WeatherData> | null;
+  ["setLocations"]: React.Dispatch<
+    React.SetStateAction<Map<string, WeatherData> | null>
+  >;
+  ["selectedLocation"]: string | null;
+  ["setSelectedLocation"]: React.Dispatch<React.SetStateAction<string | null>>;
+  ["handleLocationClick"]: (location: string) => void;
+  ["displayedWeather"]: WeatherData | null;
+  ["setDisplayedWeather"]: React.Dispatch<
+    React.SetStateAction<WeatherData | null>
+  >;
+}
+
+export const LocationsContext = createContext<LocationsContextType | null>(
+  null
+);
+
+export default function App() {
+  const [loadingLocalStorageData, setLoadingLocalStorageData] = useState(true);
+  const [loadingGeolocation, setLoadingGeolocation] = useState(true);
+  const [displayedWeather, setDisplayedWeather] = useState<WeatherData | null>(
+    null
+  );
   const [message, setMessage] = useState<string>("Wait");
-  const [locationsToggle, setLocationsToggle] = useState<boolean>(false);
-  const ref = useRef<HTMLInputElement>(null);
+  const localStorageString = localStorage.getItem("locations");
+  const localStorageData: string[] | null = localStorageString
+    ? JSON.parse(localStorageString)
+    : null;
+  const [locations, setLocations] = useState<Map<string, WeatherData> | null>(
+    null
+  );
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
-  function updateLocations(locationName: string) {
-    const locationsString = localStorage.getItem("locations");
-    const locationsArray = locationsString
-      ? JSON.parse(locationsString)
-      : undefined;
-    if (locationsArray && !locationsArray.includes(locationName)) {
-      locationsArray.push(locationName);
-    }
-    locationsString
-      ? localStorage.setItem("locations", JSON.stringify(locationsArray))
-      : localStorage.setItem("locations", `["${locationName}"]`);
-  }
+  const handleLocationClick = (location: string) => {
+    locations && setDisplayedWeather(locations.get(location) ?? null);
+    setSelectedLocation(location);
+  };
 
-  const fetchData = async (query?: string) => {
-    if (!query) {
-      async function success(position: GeolocationPosition) {
-        setLocation(`${position.coords.latitude},${position.coords.longitude}`);
-        await fetch(
-          `https://api.tomorrow.io/v4/weather/forecast?location=${location}&timesteps=1h&timesteps=1d&apikey=${
-            import.meta.env.VITE_TOMORROW_API_KEY
-          }`
-        )
-          .then((res) => res.json())
-          .then((result: WeatherType) => {
-            setData(result);
-          });
-      }
-
-      function error() {
-        setMessage(
-          "Unable to retrieve your location. Please try enabling geolocation services in your browser or select a location below."
-        );
-      }
-
-      if (!navigator.geolocation) {
-        setMessage(
-          "This browser doesn't support geolocation. Please add a new location below."
-        );
-      } else {
-        setMessage("Checking location...");
-        navigator.geolocation.getCurrentPosition(success, error);
-      }
-    } else {
-      await fetch(`http://localhost:3000/${query}`)
+  const fetchData = async () => {
+    const currentLocations = new Map(locations);
+    const geolocationSuccess = async (position: GeolocationPosition) => {
+      const google = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=52.3563,4.8096&result_type=locality&key=${
+          import.meta.env.VITE_GOOGLE_API_KEY
+        }`
+      ).then((res) => res.json());
+      await fetch("http://localhost:3000/52.3563,4.8096")
         .then((res) => res.json())
-        .then((result) => {
-          updateLocations(query);
-          setData(result);
-        });
+        .then((result: WeatherData) => {
+          currentLocations
+            ? setLocations(
+                new Map([
+                  ["52.3563,4.8096", { ...result, google }],
+                  ...currentLocations,
+                ])
+              )
+            : setLocations(
+                new Map([["52.3563,4.8096", { ...result, google }]])
+              );
+          setDisplayedWeather({ ...result, google });
+        })
+        .then(() => setLoadingGeolocation(false));
+    };
+    const geolocationError = () => {
+      setMessage(
+        "Unable to retrieve your location. Please try enabling geolocation services in your browser or select a location below."
+      );
+      setLoadingGeolocation(false);
+    };
+
+    const fetchLocalData = async () => {
+      if (localStorageData) {
+        const dataPromises = [];
+        const namesPromises = [];
+        for (let i = 0; i < localStorageData.length; i++) {
+          dataPromises.push(
+            fetch(`http://localhost:3000/${localStorageData[i]}`).then((res) =>
+              res.json()
+            )
+          );
+          namesPromises.push(
+            fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
+                localStorageData[i]
+              }&result_type=locality&key=${import.meta.env.VITE_GOOGLE_API_KEY}`
+            ).then((res) => res.json())
+          );
+        }
+        const resolvedDataPromises = await Promise.all(dataPromises);
+        const resolvedNamePromises = await Promise.all(namesPromises);
+        for (let i = 0; i < localStorageData.length; i++) {
+          currentLocations.set(localStorageData[i], {
+            ...resolvedDataPromises[i],
+            google: resolvedNamePromises[i],
+          });
+        }
+        return currentLocations;
+        setLocations(currentLocations);
+        !displayedWeather &&
+          setDisplayedWeather(currentLocations.values().next().value);
+      }
+    };
+
+    if (!navigator.geolocation) {
+      setMessage(
+        "This browser doesn't support geolocation. Please add a new location below."
+      );
+      setLoadingGeolocation(false);
+    } else {
+      setMessage("Checking location...");
+      navigator.geolocation.getCurrentPosition(
+        geolocationSuccess,
+        geolocationError
+      );
     }
+
+    await fetchLocalData();
   };
 
   useEffect(() => {
-    fetchData();
+    async function load() {
+      await fetchData();
+      setLoadingLocalStorageData(false);
+    }
+    load();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(e.target.value);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchData(formData.toLowerCase());
-  };
-
-  const handleLocationsClick = () => {
-    setLocationsToggle(!locationsToggle);
-  };
-
   return (
-    <div className="container">
-      <div className="header">
-        <h1 onClick={() => setData(null)}>RainCheck</h1>
+    <LocationsContext.Provider
+      value={{
+        localStorageData,
+        locations,
+        setLocations,
+        displayedWeather,
+        setDisplayedWeather,
+        selectedLocation,
+        setSelectedLocation,
+        handleLocationClick,
+      }}
+    >
+      <div className="container">
+        <div className="header">
+          <span className="material-symbols-outlined menu">menu</span>
+          <h1 onClick={() => setDisplayedWeather(null)}>RainCheck</h1>
+        </div>
+        {loadingGeolocation ? (
+          <div className="status">{message}</div>
+        ) : (
+          <>
+            {loadingLocalStorageData ? (
+              <div className="status">Loading...</div>
+            ) : (
+              <>
+                {displayedWeather === null || displayedWeather === undefined ? (
+                  <Locations />
+                ) : (
+                  <LocationWeather displayedWeather={displayedWeather} />
+                )}
+              </>
+            )}
+          </>
+        )}
+        <div className="footer">© 2024 Chryja</div>
       </div>
-      {data === null ? (
-        <Locations data={data} setData={setData} />
-      ) : (
-        // <div className="status">{message}</div>
-        <Weather data={data} setData={setData} />
-      )}
-      {/* )} */}
-      {/* <div className="locations" onClick={() => handleLocationsClick()}>
-        <span className="material-symbols-outlined m">location_on</span>
-        <p>Manage locations</p>
-      </div> */}
-      {/* {locationsToggle && <Locations data={data} setData={setData} />} */}
-      <div className="footer">© 2024 Chryja</div>
-    </div>
+    </LocationsContext.Provider>
   );
 }
-
-export default App;
+// https://api.tomorrow.io/v4/weather/forecast?location=52.3563,4.8096&timesteps=1h&timesteps=1d&apikey={{VITE_API_KEY}}

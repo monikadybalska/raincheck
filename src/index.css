@@ -25,7 +25,6 @@ body * {
 .container {
   display: flex;
   flex-direction: column;
-  border: 2px solid white;
   border-radius: 10px;
   width: 50%;
   min-height: 500px;
@@ -37,9 +36,19 @@ body * {
   width: 100%;
   height: 82px;
   border-radius: 8px 8px 0 0;
+  padding: 0 20px 0 20px;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+}
+
+.menu {
+  color: black;
+  font-size: 40px;
+}
+
+.menu:hover {
+  cursor: pointer;
 }
 
 .footer {
@@ -55,9 +64,7 @@ body * {
 
 input {
   font-family: "Lato", sans-serif;
-  /* margin-left: 10px; */
   font-size: 15px;
-  /* padding: 8px; */
   border-radius: 2px 0 0 2px;
   border: 1.6px solid black;
 }
@@ -80,12 +87,6 @@ button:hover {
   border-left: 1.6px solid transparent;
 }
 
-.Cloudy,
-.Mist,
-.Haze,
-.Dust,
-.Fog,
-.Sand,
 .Weather,
 .status {
   width: 100%;
@@ -99,6 +100,15 @@ button:hover {
   color: black;
   padding: 30px 50px 0 50px;
   box-sizing: border-box;
+}
+
+.Cloudy,
+.Mist,
+.Haze,
+.Dust,
+.Fog,
+.Sand {
+  background-color: lightgrey;
 }
 
 .HourlyWeather {
@@ -191,7 +201,6 @@ button:hover {
 
 h1 {
   color: black;
-  margin-right: 20px;
 }
 
 h1:hover {
@@ -201,6 +210,7 @@ h1:hover {
 .locations {
   width: 100%;
   display: flex;
+  flex-direction: column;
   background-color: black;
   text-transform: uppercase;
   font-weight: 600;
@@ -209,16 +219,20 @@ h1:hover {
 }
 
 .location {
-  width: 34%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   /* align-items: center; */
   justify-content: space-between;
   font-size: 20px;
-  background-color: lightgrey;
+  /* background-color: lightgrey; */
   color: black;
-  border: 1px solid black;
+  border-bottom: 1px solid black;
   box-sizing: border-box;
+}
+
+.location:last-of-type {
+  border-bottom: none;
 }
 
 .location-content {
@@ -235,7 +249,6 @@ h1:hover {
 
 .location-text {
   padding: 20px;
-  width: 100%;
   text-transform: capitalize;
   font-weight: 400;
 }
@@ -247,7 +260,7 @@ h1:hover {
 
 .location-button {
   display: flex;
-  background-color: lightgrey;
+  /* background-color: lightgrey; */
   /* margin-left: 80%;
   margin-bottom: 10%; */
   width: 100%;
@@ -255,12 +268,12 @@ h1:hover {
   text-transform: none;
   font-size: 15px;
   align-items: center;
+  /* border-top: 1px solid black; */
 }
 
-.location-content:hover,
-.location-button:hover,
+.location:hover,
 .selected {
-  background-color: whitesmoke;
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.4);
   cursor: pointer;
 }
 
@@ -356,7 +369,7 @@ h1:hover {
 }
 
 h2 {
-  margin: 10px;
+  margin: 10px 0 0 0;
   font-size: 50px;
 }
 
@@ -381,6 +394,16 @@ h2 {
 }
 
 @media (max-width: 1100px) {
+  .container {
+    width: 90%;
+  }
+
+  .location {
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
   .container {
     width: 90%;
   }

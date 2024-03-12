@@ -1,21 +1,35 @@
 import { WeatherType } from "./App";
-import { getIcon } from "./Weather";
+import { getIcon } from "./LocationWeather";
 import { weatherCodes } from "./weatherCodes";
-import "./index.css"
+import "./index.css";
 
-export default function DailyWeather({data} : {data: WeatherType}) {
-    const currentDate = new Date(Date.now()).toISOString()
-    const dailyData = data.timelines.daily.filter((day) => day.time.slice(0, 11) >= currentDate.slice(0, 11))
-    return <div className="DailyWeather">
-        {dailyData.map((day) => <div className="DailyWeatherElement">
-            <p className="primary">{day.time.slice(0, 11) === currentDate.slice(0, 11) ? "Today" : new Intl.DateTimeFormat("en-US", {weekday: "long"}).format(new Date(day.time))}</p>
-            <div className="DailyWeatherElementTemperature">
-            <span className="material-symbols-outlined">{getIcon(weatherCodes.weatherCode[day.values.weatherCodeMax])}</span>
+export default function DailyWeather({ data }: { data: WeatherType }) {
+  const currentDate = new Date(Date.now()).toISOString();
+  const dailyData = data.timelines.daily.filter(
+    (day) => day.time.slice(0, 11) >= currentDate.slice(0, 11)
+  );
+  return (
+    <div className="DailyWeather">
+      {dailyData.map((day) => (
+        <div className="DailyWeatherElement">
+          <p className="primary">
+            {day.time.slice(0, 11) === currentDate.slice(0, 11)
+              ? "Today"
+              : new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(
+                  new Date(day.time)
+                )}
+          </p>
+          <div className="DailyWeatherElementTemperature">
+            <span className="material-symbols-outlined">
+              {getIcon(weatherCodes.weatherCode[day.values.weatherCodeMax])}
+            </span>
             <p className="primary">{Math.round(day.values.temperatureMax)}°</p>
             <p className="primary">{Math.round(day.values.temperatureMin)}°</p>
-            </div>
-            </div>)}
+          </div>
+        </div>
+      ))}
     </div>
+  );
 }
 
 // export default function DailyWeather({data} : {data: WeatherType}) {

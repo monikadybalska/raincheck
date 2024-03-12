@@ -1,10 +1,9 @@
 import "./index.css";
-import { WeatherType } from "./App";
+import { WeatherData } from "./App";
 import { weatherCodes } from "./weatherCodes";
 import HourlyWeather from "./HourlyWeather";
 import DailyWeather from "./DailyWeather";
 import Divider from "./Divider";
-import { AutocompleteCustom } from "./Autocomplete";
 
 export function getIcon(weatherMain: string) {
   let icon: string = "";
@@ -56,15 +55,13 @@ export function getIcon(weatherMain: string) {
   return icon;
 }
 
-export default function Weather({
-  data,
-  setData,
+export default function LocationWeather({
+  displayedWeather,
 }: {
-  data: WeatherType;
-  setData: React.Dispatch<React.SetStateAction<WeatherType | null>>;
+  displayedWeather: WeatherData;
 }) {
   const currentDate = new Date(Date.now()).toISOString();
-  const currentData = data.timelines.hourly.filter(
+  const currentData = displayedWeather.timelines.hourly.filter(
     (timestamp) => timestamp.time.slice(0, 13) === currentDate.slice(0, 13)
   )[0];
   return (
@@ -73,19 +70,19 @@ export default function Weather({
         weatherCodes.weatherCode[currentData.values.weatherCode]
       }`}
     >
-      {/* <div onClick={() => setData(null)} className="return">
-        Back to all locations
-      </div> */}
       <span className="material-symbols-outlined xl">
         {getIcon(weatherCodes.weatherCode[currentData.values.weatherCode])}
       </span>
-      <h3>{data.google.results[0].address_components[0].short_name}</h3>
+      <h3>
+        {displayedWeather.google?.results[0].address_components[0].short_name ??
+          "Location name not found"}
+      </h3>
       <h2>{currentData.values.temperature} °C</h2>
       <h3>{weatherCodes.weatherCode[currentData.values.weatherCode]}</h3>
       <Divider />
-      <HourlyWeather data={data} />
+      <HourlyWeather data={displayedWeather} />
       <Divider />
-      <DailyWeather data={data} />
+      <DailyWeather data={displayedWeather} />
     </div>
   );
 }

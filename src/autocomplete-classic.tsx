@@ -6,27 +6,22 @@ import React, {
   useContext,
 } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { LocationsContext } from "./Locations";
+import { LocationsContext, WeatherData, LocationsContextType } from "./App";
 
 interface Props {
   onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void;
 }
 
-// This is a custom built autocomplete component using the "Autocomplete Service" for predictions
-// and the "Places Service" for place details
 export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
   const map = useMap();
   const places = useMapsLibrary("places");
 
-  // https://developers.google.com/maps/documentation/javascript/reference/places-autocomplete-service#AutocompleteSessionToken
   const [sessionToken, setSessionToken] =
     useState<google.maps.places.AutocompleteSessionToken>();
 
-  // https://developers.google.com/maps/documentation/javascript/reference/places-autocomplete-service
   const [autocompleteService, setAutocompleteService] =
     useState<google.maps.places.AutocompleteService | null>(null);
 
-  // https://developers.google.com/maps/documentation/javascript/reference/places-service
   const [placesService, setPlacesService] =
     useState<google.maps.places.PlacesService | null>(null);
 
@@ -95,42 +90,34 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
     [onPlaceSelect, places, placesService, sessionToken]
   );
 
-  const locations = useContext(LocationsContext)?.locations;
-  const setLocations = useContext(LocationsContext)?.setLocations;
-  const setSelectedLocation = useContext(LocationsContext)?.setSelectedLocation;
-  const handleLocationClick = useContext(LocationsContext)?.handleLocationClick;
+  const context = useContext(LocationsContext) as LocationsContextType;
+  const localStorageData = context.localStorageData;
+  const locations = context.locations;
+  const setLocations = context.setLocations;
+  const setDisplayedWeather = context.setDisplayedWeather;
 
   const handleLocationAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (setLocations) {
-      await fetch(`http://localhost:3000/${inputValue.toLowerCase()}`)
-        .then((res) => res.json())
-        .then((result) => {
-          if (locations) {
-            const newLocations = { ...locations };
-            const newLocationsArray = Object.keys(locations);
-            setLocations({
-              ...newLocations,
-              [inputValue.toLowerCase()]: result,
-            });
-            if (!newLocationsArray.includes(inputValue)) {
-              newLocationsArray.push(inputValue.toLowerCase());
-              localStorage.setItem(
-                "locations",
-                JSON.stringify(newLocationsArray)
-              );
-            }
-          } else {
-            setLocations({ [`${inputValue.toLowerCase()}`]: result });
-            localStorage.setItem(
-              "locations",
-              JSON.stringify([`${inputValue.toLowerCase()}`])
-            );
-          }
-          if (handleLocationClick) {
-            handleLocationClick(inputValue.toLowerCase());
-          }
-        });
+    const google = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${inputValue}&result_type=locality&key=${
+        import.meta.env.VITE_GOOGLE_API_KEY
+      }`
+    ).then((res) => res.json());
+    await fetch(`http://localhost:3000/${inputValue}`)
+      .then((res) => res.json())
+      .then((result: WeatherData) => {
+        const newLocations = new Map(locations);
+        newLocations.set(inputValue, { ...result, google });
+        setLocations(newLocations);
+        setDisplayedWeather({ ...result, google });
+      });
+    if (localStorageData) {
+      if (!localStorageData?.includes(inputValue)) {
+        localStorageData.push(inputValue);
+        localStorage.setItem("locations", JSON.stringify(localStorageData));
+      }
+    } else {
+      localStorage.setItem("locations", JSON.stringify([`${inputValue}`]));
     }
   };
 
