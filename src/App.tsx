@@ -36,7 +36,6 @@ export interface Hourly {
     windSpeed: number;
   };
 }
-
 export interface Daily {
   time: string;
   values: {
@@ -137,7 +136,6 @@ export interface Daily {
     windSpeedMin: number;
   };
 }
-
 export interface WeatherData {
   timelines: {
     hourly: Hourly[];
@@ -149,7 +147,6 @@ export interface WeatherData {
   };
   google?: GoogleGeocodingData;
 }
-
 export interface GoogleGeocodingData {
   plus_code: {
     compound_code: string;
@@ -194,7 +191,6 @@ export interface GoogleGeocodingData {
   }[];
   status: string;
 }
-
 export interface LocationsContextType {
   ["localStorageData"]: string[] | null;
   ["locations"]: Map<string, WeatherData> | null;
@@ -209,14 +205,13 @@ export interface LocationsContextType {
     React.SetStateAction<WeatherData | null>
   >;
 }
-
 export const LocationsContext = createContext<LocationsContextType | null>(
   null
 );
 
 export default function App() {
   const [loadingLocalStorageData, setLoadingLocalStorageData] = useState(true);
-  const [loadingGeolocation, setLoadingGeolocation] = useState(true);
+  // const [loadingGeolocation, setLoadingGeolocation] = useState(true);
   const [displayedWeather, setDisplayedWeather] = useState<WeatherData | null>(
     null
   );
