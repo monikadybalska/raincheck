@@ -200,4 +200,6 @@ export interface LocationsContextType {
   ["setDisplayedWeather"]: React.Dispatch<
     React.SetStateAction<WeatherData | null>
   >;
+  ["message"]: string;
+  ["setMessage"]: React.Dispatch<React.SetStateAction<string>>;
 }
