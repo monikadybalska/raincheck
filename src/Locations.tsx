@@ -8,6 +8,7 @@ export default function Locations() {
   const [mapboxToggle, setMapboxToggle] = useState<boolean>(false);
 
   const context = useContext(LocationsContext) as LocationsContextType;
+  const geolocation = context.geolocation;
   const locations = context.locations;
   const message = context.message;
 
@@ -17,17 +18,24 @@ export default function Locations() {
 
   return (
     <div className="locations">
-      {locations ? (
+      {geolocation && (
+        <Location
+          key={Array.from(geolocation.keys())[0]}
+          locationCoordinates={Array.from(geolocation.keys())[0]}
+          locationWeather={Array.from(geolocation.values())[0]}
+          currentLocation={true}
+        />
+      )}
+      {locations &&
         Array.from(locations).map(([locationCoordinates, locationWeather]) => (
           <Location
             key={locationCoordinates}
             locationCoordinates={locationCoordinates}
             locationWeather={locationWeather}
+            currentLocation={false}
           />
-        ))
-      ) : (
-        <div className="status">{message}</div>
-      )}
+        ))}
+      {!geolocation && !locations && <div className="status">{message}</div>}
       <div className="browse-locations" onClick={handleMapboxOpen}>
         <div className="browse-locations-text">Add location</div>
         <span className="material-symbols-outlined browse-locations-button">

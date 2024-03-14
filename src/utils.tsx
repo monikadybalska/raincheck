@@ -1,4 +1,4 @@
-import { WeatherData } from "./types/Interfaces";
+import { GoogleGeocodingData, WeatherData } from "./types/Interfaces";
 
 export function getCurrentPosition(): Promise<GeolocationPosition> | null {
   if (!navigator.geolocation) {
@@ -13,28 +13,31 @@ export function getCurrentPosition(): Promise<GeolocationPosition> | null {
   }
 }
 
-export const fetchGeolocationData = async () => {
+export const fetchGeolocationData: () => Promise<Map<
+  string,
+  WeatherData
+> | null> = async () => {
   try {
     const position = await getCurrentPosition();
     if (!position) return null;
-    const google = await fetch(
+    const googlePromise: Promise<GoogleGeocodingData> = fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
         position.coords.latitude
       },${position.coords.longitude}&result_type=locality&key=${
         import.meta.env.VITE_GOOGLE_API_KEY
       }`
     ).then((res) => res.json());
-    const weather: WeatherData = await fetch(
+    const weatherPromise: Promise<WeatherData> = fetch(
       "http://localhost:3000/52.3675734,4.9041389"
     ).then((res) => res.json());
-    // newLocations.set(
-    //   `${position.coords.latitude},${position.coords.longitude}`,
-    //   { ...weather, google }
-    // );
+    const [google, weather] = await Promise.all([
+      googlePromise,
+      weatherPromise,
+    ]);
     return new Map([
       [
         `${position.coords.latitude},${position.coords.longitude}`,
-        { ...weather, google },
+        { google: google, ...weather },
       ],
     ]);
   } catch (e: unknown) {
@@ -43,10 +46,10 @@ export const fetchGeolocationData = async () => {
 };
 
 export const fetchLocalData = async (localStorageData: string[] | null) => {
-  const newLocations = new Map();
+  const newLocations: Map<string, WeatherData> = new Map();
   if (localStorageData) {
-    const dataPromises = [];
-    const namesPromises = [];
+    const dataPromises: Promise<WeatherData>[] = [];
+    const namesPromises: Promise<GoogleGeocodingData>[] = [];
     for (let i = 0; i < localStorageData.length; i++) {
       dataPromises.push(
         fetch(`http://localhost:3000/${localStorageData[i]}`).then((res) =>

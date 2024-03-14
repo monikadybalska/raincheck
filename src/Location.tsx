@@ -2,13 +2,16 @@ import { weatherCodes } from "./weatherCodes";
 import { useContext } from "react";
 import { WeatherData, LocationsContextType } from "./types/Interfaces";
 import { LocationsContext } from "./App";
+import { getIcon } from "./LocationWeather";
 
 export default function Location({
   locationCoordinates,
   locationWeather,
+  currentLocation,
 }: {
   locationCoordinates: string;
   locationWeather: WeatherData;
+  currentLocation: boolean;
 }) {
   const context = useContext(LocationsContext) as LocationsContextType;
   const localStorageData = context.localStorageData;
@@ -52,8 +55,26 @@ export default function Location({
         className="location-content"
         onClick={() => handleLocationClick(locationCoordinates)}
       >
+        {/* {currentLocation && (
+          <div className="location-row" style={{ paddingBottom: 0 }}>
+            <div className="label">
+              <span className="material-symbols-outlined s">near_me</span>
+              location
+            </div>
+          </div>
+        )} */}
+        <span className="material-symbols-outlined m illustration">
+          {getIcon(weatherCodes.weatherCode[currentData.values.weatherCode])}
+        </span>
         <div className="location-row">
-          <span className="material-symbols-outlined">location_on</span>
+          {currentLocation && (
+            <span
+              className="material-symbols-outlined"
+              style={{ paddingRight: "0.3rem" }}
+            >
+              location_on
+            </span>
+          )}
           <div className="location-text">
             {locationWeather.google?.results[0].address_components[0]
               .short_name ?? "Location name not found"}
@@ -69,14 +90,24 @@ export default function Location({
             {weatherCodes.weatherCode[currentData.values.weatherCode]}
           </div>
         </div>
+        {!currentLocation && (
+          <span
+            className="material-symbols-outlined location-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteLocation(locationCoordinates);
+            }}
+          >
+            delete
+          </span>
+        )}
       </div>
-      <div
+      {/* <div
         className="location-button"
         onClick={() => handleDeleteLocation(locationCoordinates)}
-      >
-        <span className="material-symbols-outlined ">delete</span>
-        Delete
-      </div>
+      > */}
+      {/* Delete
+      </div> */}
     </div>
   );
 }

@@ -20,40 +20,52 @@ export default function App() {
   const localStorageData: string[] | null = localStorageString
     ? JSON.parse(localStorageString)
     : null;
+  const [geolocation, setGeolocation] = useState<Map<
+    string,
+    WeatherData
+  > | null>(null);
   const [locations, setLocations] = useState<Map<string, WeatherData> | null>(
     null
   );
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
   const handleLocationClick = (location: string) => {
-    locations && setDisplayedWeather(locations.get(location) ?? null);
-    setSelectedLocation(location);
+    if (locations && locations.has(location)) {
+      const locationData = locations.get(location);
+      locationData !== undefined && setDisplayedWeather(locationData);
+      setSelectedLocation(location);
+    } else if (geolocation && geolocation.has(location)) {
+      const locationData = geolocation.get(location);
+      locationData !== undefined && setDisplayedWeather(locationData);
+      setSelectedLocation(location);
+    }
   };
 
   const fetchData = async () => {
-    const newLocations = new Map(locations);
-    // const currentLocation = await fetchGeolocationData(newLocations);
-    // const localData = await fetchLocalData(localStorageData, newLocations);
-    const [currentLocation, localData] = await Promise.all([
+    const [geolocationData, localData] = await Promise.all([
       fetchGeolocationData(),
       fetchLocalData(localStorageData),
     ]);
-    if (!currentLocation && !localData) {
-      return null;
-    } else if (!localData) {
-      return new Map(currentLocation);
-    } else if (!currentLocation) {
-      return new Map(localData);
-    } else return new Map([...currentLocation, ...localData]);
+    return { geolocationData: geolocationData, localData: localData };
+    // if (!geolocationData && !localData) {
+    //   return null;
+    // } else if (!localData) {
+    //   return new Map(geolocationData);
+    // } else if (!geolocationData) {
+    //   return new Map(localData);
+    // } else return new Map([...geolocationData, ...localData]);
   };
 
   useEffect(() => {
     async function load() {
-      const locationsData = await fetchData();
-      setLocations(locationsData);
-      locationsData
-        ? setDisplayedWeather(locationsData.values().next().value)
-        : setDisplayedWeather(null);
+      const { geolocationData, localData } = await fetchData();
+      setGeolocation(geolocationData);
+      setLocations(localData);
+      if (geolocationData) {
+        setDisplayedWeather(geolocationData.values().next().value);
+      } else if (localData) {
+        setDisplayedWeather(localData.values().next().value);
+      } else setDisplayedWeather(null);
       setIsLoading(false);
     }
     load();
@@ -88,6 +100,8 @@ export default function App() {
     <LocationsContext.Provider
       value={{
         localStorageData,
+        geolocation,
+        setGeolocation,
         locations,
         setLocations,
         displayedWeather,

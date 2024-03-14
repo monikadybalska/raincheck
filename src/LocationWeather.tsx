@@ -1,9 +1,11 @@
 import "./index.css";
-import { WeatherData } from "./types/Interfaces";
+import { LocationsContextType, WeatherData } from "./types/Interfaces";
 import { weatherCodes } from "./weatherCodes";
 import HourlyWeather from "./HourlyWeather";
 import DailyWeather from "./DailyWeather";
 import Divider from "./Divider";
+import { LocationsContext } from "./App";
+import { useContext } from "react";
 
 export function getIcon(weatherMain: string) {
   let icon: string = "";
@@ -64,21 +66,50 @@ export default function LocationWeather({
   const currentData = displayedWeather.timelines.hourly.filter(
     (timestamp) => timestamp.time.slice(0, 13) === currentDate.slice(0, 13)
   )[0];
+  const context = useContext(LocationsContext) as LocationsContextType;
+  const geolocation = context.geolocation;
+  const currentLocation = geolocation
+    ? Array.from(geolocation.values())[0] === displayedWeather
+    : false;
   return (
     <div
       className={`Weather ${
         weatherCodes.weatherCode[currentData.values.weatherCode]
       }`}
     >
-      <span className="material-symbols-outlined xl">
-        {getIcon(weatherCodes.weatherCode[currentData.values.weatherCode])}
-      </span>
-      <h3>
-        {displayedWeather.google?.results[0].address_components[0].short_name ??
-          "Location name not found"}
-      </h3>
-      <h2>{currentData.values.temperature} °C</h2>
-      <h3>{weatherCodes.weatherCode[currentData.values.weatherCode]}</h3>
+      {/* {currentLocation && (
+        <div
+          className="location-row"
+          style={{ paddingBottom: 0, paddingLeft: 0 }}
+        >
+          <div className="label">
+            <span className="material-symbols-outlined s">near_me</span>Your
+            location
+          </div>
+        </div>
+      )} */}
+      <div className="weather-overview">
+        <div className="location-row">
+          {currentLocation && (
+            <span className="material-symbols-outlined">location_on</span>
+          )}
+          <div className="location-text s">
+            {displayedWeather.google?.results[0].address_components[0]
+              .short_name ?? "Location name not found"}
+          </div>
+        </div>
+        <div className="location-row">
+          <h2>{currentData.values.temperature} °C</h2>
+        </div>
+        <span className="material-symbols-outlined illustration main">
+          {getIcon(weatherCodes.weatherCode[currentData.values.weatherCode])}
+        </span>
+        <div className="location-row">
+          <div className="location-text s">
+            {weatherCodes.weatherCode[currentData.values.weatherCode]}
+          </div>
+        </div>
+      </div>
       <Divider />
       <HourlyWeather data={displayedWeather} />
       <Divider />

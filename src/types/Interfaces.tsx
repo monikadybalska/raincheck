@@ -193,6 +193,10 @@ export interface LocationsContextType {
   ["setLocations"]: React.Dispatch<
     React.SetStateAction<Map<string, WeatherData> | null>
   >;
+  ["geolocation"]: Map<string, WeatherData> | null;
+  ["setGeolocation"]: React.Dispatch<
+    React.SetStateAction<Map<string, WeatherData> | null>
+  >;
   ["selectedLocation"]: string | null;
   ["setSelectedLocation"]: React.Dispatch<React.SetStateAction<string | null>>;
   ["handleLocationClick"]: (location: string) => void;

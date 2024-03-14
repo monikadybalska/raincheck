@@ -111,13 +111,13 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
         }`
       )
     ).then((res) => res.json());
-    console.log(google);
     const geometry = `${google.results[0].geometry.location.lat},${google.results[0].geometry.location.lng}`;
     const weather: WeatherData = await fetch(
       `http://localhost:3000/${geometry}`
     ).then((res) => res.json());
     newLocations.set(geometry, { ...weather, google });
     setLocations(newLocations);
+    setDisplayedWeather({ ...weather, google });
     if (localStorageData) {
       if (!localStorageData.includes(geometry)) {
         localStorageData.push(geometry);
