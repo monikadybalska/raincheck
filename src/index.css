@@ -92,14 +92,16 @@ button:hover {
   width: 100%;
   display: flex;
   flex-direction: column;
-  /* align-items: center; */
+  align-items: center;
   justify-content: center;
   flex-grow: 1;
   min-height: 300px;
   background-color: lightgrey;
   color: black;
-  padding: 30px 50px 0 50px;
+  padding: 30px 20px 0 20px;
   box-sizing: border-box;
+  text-transform: none;
+  font-weight: 400;
 }
 
 .Cloudy,
@@ -107,7 +109,8 @@ button:hover {
 .Haze,
 .Dust,
 .Fog,
-.Sand {
+.Sand,
+.Flurries {
   background-color: lightgrey;
 }
 
@@ -216,6 +219,12 @@ h1:hover {
   font-weight: 600;
   flex-grow: 1;
   overflow: scroll;
+  opacity: 100%;
+  transition: ease-in-out 2s;
+}
+
+.hidden {
+  opacity: 0%;
 }
 
 .location {
@@ -239,7 +248,9 @@ h1:hover {
   flex-grow: 1;
 }
 
-.location.row {
+.location-row {
+  padding: 20px;
+  display: flex;
   border: none;
   width: 100%;
   flex-direction: row;
@@ -248,7 +259,6 @@ h1:hover {
 }
 
 .location-text {
-  padding: 20px;
   text-transform: capitalize;
   font-weight: 400;
 }
@@ -378,7 +388,7 @@ h2 {
 }
 
 .s {
-  font-size: 18px;
+  font-size: 20px;
   /* line-height: 21.4px; */
   vertical-align: text-top;
 }

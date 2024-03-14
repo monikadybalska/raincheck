@@ -1,6 +1,5 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { APIProvider, ControlPosition, Map } from "@vis.gl/react-google-maps";
-import { LocationsContext } from "./Locations";
 
 import { CustomMapControl } from "./map-control";
 import MapHandler from "./map-handler";

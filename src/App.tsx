@@ -2,18 +2,20 @@ import { useState, useEffect, createContext } from "react";
 import LocationWeather from "./LocationWeather";
 import Locations from "./Locations";
 import { LocationsContextType, WeatherData } from "./types/Interfaces";
+import { fetchGeolocationData, fetchLocalData } from "./utils";
 
 export const LocationsContext = createContext<LocationsContextType | null>(
   null
 );
 
 export default function App() {
-  const [loadingLocalStorageData, setLoadingLocalStorageData] = useState(true);
-  // const [loadingGeolocation, setLoadingGeolocation] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [displayedWeather, setDisplayedWeather] = useState<WeatherData | null>(
     null
   );
-  const [message, setMessage] = useState<string>("Wait");
+  const [message, setMessage] = useState<string>(
+    "You currently have no saved locations. Try enabling geolocation in your browser or add a new location below."
+  );
   const localStorageString = localStorage.getItem("locations");
   const localStorageData: string[] | null = localStorageString
     ? JSON.parse(localStorageString)
@@ -28,79 +30,14 @@ export default function App() {
     setSelectedLocation(location);
   };
 
-  function getCurrentPosition(): Promise<GeolocationPosition> | null {
-    if (!navigator.geolocation) {
-      setMessage(
-        "This browser doesn't support geolocation. Please add a new location below."
-      );
-      return null;
-    } else {
-      return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
-    }
-  }
-
   const fetchData = async () => {
-    const currentLocations = new Map(locations);
-    const fetchGeolocationData = async () => {
-      try {
-        const position = await getCurrentPosition();
-        if (!position) return null;
-        const google = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
-            position.coords.latitude
-          },${position.coords.longitude}&result_type=locality&key=${
-            import.meta.env.VITE_GOOGLE_API_KEY
-          }`
-        ).then((res) => res.json());
-        const weather: WeatherData = await fetch(
-          "http://localhost:3000/52.3563,4.8096"
-        ).then((res) => res.json());
-        currentLocations.set(
-          `${position.coords.latitude},${position.coords.longitude}`,
-          { ...weather, google }
-        );
-        return currentLocations;
-      } catch (e: unknown) {
-        return null;
-      }
-    };
-
-    const fetchLocalData = async () => {
-      if (localStorageData) {
-        const dataPromises = [];
-        const namesPromises = [];
-        for (let i = 0; i < localStorageData.length; i++) {
-          dataPromises.push(
-            fetch(`http://localhost:3000/${localStorageData[i]}`).then((res) =>
-              res.json()
-            )
-          );
-          namesPromises.push(
-            fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${
-                localStorageData[i]
-              }&result_type=locality&key=${import.meta.env.VITE_GOOGLE_API_KEY}`
-            ).then((res) => res.json())
-          );
-        }
-        const resolvedDataPromises = await Promise.all(dataPromises);
-        const resolvedNamePromises = await Promise.all(namesPromises);
-        for (let i = 0; i < localStorageData.length; i++) {
-          currentLocations.set(localStorageData[i], {
-            ...resolvedDataPromises[i],
-            google: resolvedNamePromises[i],
-          });
-        }
-        console.log("local data done!");
-        return currentLocations;
-      }
-      return null;
-    };
-
-    const currentLocation = await fetchGeolocationData();
-    const localData = await fetchLocalData();
+    const newLocations = new Map(locations);
+    // const currentLocation = await fetchGeolocationData(newLocations);
+    // const localData = await fetchLocalData(localStorageData, newLocations);
+    const [currentLocation, localData] = await Promise.all([
+      fetchGeolocationData(),
+      fetchLocalData(localStorageData),
+    ]);
     if (!currentLocation && !localData) {
       return null;
     } else if (!localData) {
@@ -112,15 +49,40 @@ export default function App() {
 
   useEffect(() => {
     async function load() {
-      const newLocations = await fetchData();
-      setLocations(newLocations);
-      newLocations
-        ? setDisplayedWeather(newLocations.values().next().value)
+      const locationsData = await fetchData();
+      setLocations(locationsData);
+      locationsData
+        ? setDisplayedWeather(locationsData.values().next().value)
         : setDisplayedWeather(null);
-      setLoadingLocalStorageData(false);
+      setIsLoading(false);
     }
     load();
   }, []);
+
+  // useEffect(() => {
+  //   async function load() {
+  //     const [currentLocation, localData] = await Promise.all([
+  //       fetchGeolocationData(newLocations),
+  //       fetchLocalData(localStorageData, newLocations),
+  //     ]);
+  //     setIsLoading(false);
+  //     if (currentLocation && localData) {
+  //       setLocations(new Map([...currentLocation, ...localData]));
+  //       setDisplayedWeather(currentLocation.values().next().value);
+  //     } else if (currentLocation) {
+  //       setLocations(new Map(currentLocation));
+  //       setDisplayedWeather(currentLocation.values().next().value);
+  //     } else if (localData) {
+  //       setLocations(new Map(localData));
+  //       setDisplayedWeather(localData.values().next().value);
+  //     } else {
+  //       setLocations(null);
+  //       setDisplayedWeather(null);
+  //     }
+  //     console.log(locations);
+  //   }
+  //   load();
+  // }, []);
 
   return (
     <LocationsContext.Provider
@@ -133,19 +95,22 @@ export default function App() {
         selectedLocation,
         setSelectedLocation,
         handleLocationClick,
+        message,
+        setMessage,
       }}
     >
       <div className="container">
         <div className="header">
-          <span className="material-symbols-outlined menu">menu</span>
-          <h1 onClick={() => setDisplayedWeather(null)}>RainCheck</h1>
+          <span
+            className="material-symbols-outlined menu"
+            onClick={() => setDisplayedWeather(null)}
+          >
+            menu
+          </span>
+          <h1>RainCheck</h1>
         </div>
-        {/* {loadingGeolocation ? (
-          <div className="status">{message}</div>
-        ) : ( */}
-        {/* <> */}
-        {loadingLocalStorageData ? (
-          <div className="status">Loading...</div>
+        {isLoading ? (
+          <div className="status">Loading weather...</div>
         ) : (
           <>
             {displayedWeather === null || displayedWeather === undefined ? (
@@ -155,8 +120,6 @@ export default function App() {
             )}
           </>
         )}
-        {/* </>
-        )} */}
         <div className="footer">© 2024 Chryja</div>
       </div>
     </LocationsContext.Provider>

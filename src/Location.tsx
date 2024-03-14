@@ -15,7 +15,6 @@ export default function Location({
   const locations = context.locations;
   const setLocations = context.setLocations;
   const setDisplayedWeather = context.setDisplayedWeather;
-  const selectedLocation = context.selectedLocation;
   const handleLocationClick = context.handleLocationClick;
 
   const handleDeleteLocation = (location: string) => {
@@ -45,23 +44,17 @@ export default function Location({
   return (
     <div
       key={locationCoordinates}
-      className={
-        selectedLocation === locationCoordinates
-          ? `location selected ${
-              weatherCodes.weatherCode[currentData.values.weatherCode]
-            }`
-          : `location ${
-              weatherCodes.weatherCode[currentData.values.weatherCode]
-            }`
-      }
+      className={`location ${
+        weatherCodes.weatherCode[currentData.values.weatherCode]
+      }`}
     >
       <div
         className="location-content"
         onClick={() => handleLocationClick(locationCoordinates)}
       >
         <div className="location-row">
+          <span className="material-symbols-outlined">location_on</span>
           <div className="location-text">
-            <span className="material-symbols-outlined">location_on</span>
             {locationWeather.google?.results[0].address_components[0]
               .short_name ?? "Location name not found"}
           </div>

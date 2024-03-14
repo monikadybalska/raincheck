@@ -9,6 +9,7 @@ export default function Locations() {
 
   const context = useContext(LocationsContext) as LocationsContextType;
   const locations = context.locations;
+  const message = context.message;
 
   const handleMapboxOpen = () => {
     setMapboxToggle(!mapboxToggle);
@@ -16,6 +17,17 @@ export default function Locations() {
 
   return (
     <div className="locations">
+      {locations ? (
+        Array.from(locations).map(([locationCoordinates, locationWeather]) => (
+          <Location
+            key={locationCoordinates}
+            locationCoordinates={locationCoordinates}
+            locationWeather={locationWeather}
+          />
+        ))
+      ) : (
+        <div className="status">{message}</div>
+      )}
       <div className="browse-locations" onClick={handleMapboxOpen}>
         <div className="browse-locations-text">Add location</div>
         <span className="material-symbols-outlined browse-locations-button">
@@ -23,14 +35,6 @@ export default function Locations() {
         </span>
       </div>
       {mapboxToggle && <Mapbox />}
-      {locations &&
-        Array.from(locations).map(([locationCoordinates, locationWeather]) => (
-          <Location
-            key={locationCoordinates}
-            locationCoordinates={locationCoordinates}
-            locationWeather={locationWeather}
-          />
-        ))}
     </div>
   );
 }

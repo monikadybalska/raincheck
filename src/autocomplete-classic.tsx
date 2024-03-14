@@ -7,7 +7,11 @@ import React, {
 } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { LocationsContext } from "./App";
-import { WeatherData, LocationsContextType } from "./types/Interfaces";
+import {
+  WeatherData,
+  LocationsContextType,
+  GoogleGeocodingData,
+} from "./types/Interfaces";
 
 interface Props {
   onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void;
@@ -99,26 +103,28 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
 
   const handleLocationAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    const google = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${inputValue}&result_type=locality&key=${
-        import.meta.env.VITE_GOOGLE_API_KEY
-      }`
+    const newLocations = new Map(locations);
+    const google: GoogleGeocodingData = await fetch(
+      encodeURI(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${inputValue}&key=${
+          import.meta.env.VITE_GOOGLE_API_KEY
+        }`
+      )
     ).then((res) => res.json());
-    await fetch(`http://localhost:3000/${inputValue}`)
-      .then((res) => res.json())
-      .then((result: WeatherData) => {
-        const newLocations = new Map(locations);
-        newLocations.set(inputValue, { ...result, google });
-        setLocations(newLocations);
-        setDisplayedWeather({ ...result, google });
-      });
+    console.log(google);
+    const geometry = `${google.results[0].geometry.location.lat},${google.results[0].geometry.location.lng}`;
+    const weather: WeatherData = await fetch(
+      `http://localhost:3000/${geometry}`
+    ).then((res) => res.json());
+    newLocations.set(geometry, { ...weather, google });
+    setLocations(newLocations);
     if (localStorageData) {
-      if (!localStorageData?.includes(inputValue)) {
-        localStorageData.push(inputValue);
+      if (!localStorageData.includes(geometry)) {
+        localStorageData.push(geometry);
         localStorage.setItem("locations", JSON.stringify(localStorageData));
       }
     } else {
-      localStorage.setItem("locations", JSON.stringify([`${inputValue}`]));
+      localStorage.setItem("locations", JSON.stringify([`${geometry}`]));
     }
   };
 
