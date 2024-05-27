@@ -98,7 +98,7 @@ button:hover {
   min-height: 300px;
   background-color: lightgrey;
   color: black;
-  padding: 30px 20px 0 20px;
+  padding: 20px 20px 0 20px;
   box-sizing: border-box;
   text-transform: none;
   font-weight: 400;
@@ -125,8 +125,8 @@ button:hover {
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  overflow: scroll;
-  scrollbar-color: black whitesmoke;
+  /* overflow: scroll; */
+  /* scrollbar-color: black whitesmoke; */
   margin: 20px 0 20px 0;
 }
 
@@ -219,7 +219,6 @@ h1 {
   text-transform: uppercase;
   font-weight: 600;
   flex-grow: 1;
-  overflow: scroll;
   opacity: 100%;
   transition: ease-in-out 2s;
 }
@@ -351,8 +350,12 @@ h1 {
   color: black;
   font-size: 15px;
   box-sizing: border-box;
-  overflow: scroll;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: black lightgrey;
+  scroll-behavior: smooth;
   border-top: none;
+  text-transform: none;
 }
 
 .custom-list {
