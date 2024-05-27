@@ -91,7 +91,12 @@ export default function LocationWeather({
       <div className="weather-overview">
         <div className="location-row">
           {currentLocation && (
-            <span className="material-symbols-outlined">location_on</span>
+            <span
+              className="material-symbols-outlined"
+              style={{ paddingRight: "0.3rem" }}
+            >
+              location_on
+            </span>
           )}
           <div className="location-text s">
             {displayedWeather.google?.results[0].address_components[0]

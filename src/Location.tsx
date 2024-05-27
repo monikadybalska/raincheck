@@ -1,5 +1,5 @@
 import { weatherCodes } from "./weatherCodes";
-import { useContext } from "react";
+import { SetStateAction, useContext } from "react";
 import { WeatherData, LocationsContextType } from "./types/Interfaces";
 import { LocationsContext } from "./App";
 import { getIcon } from "./LocationWeather";
@@ -8,17 +8,20 @@ export default function Location({
   locationCoordinates,
   locationWeather,
   currentLocation,
+  items,
+  setItems,
 }: {
   locationCoordinates: string;
   locationWeather: WeatherData;
   currentLocation: boolean;
+  items: string[];
+  setItems: React.Dispatch<SetStateAction<string[]>>;
 }) {
   const context = useContext(LocationsContext) as LocationsContextType;
   const localStorageData = context.localStorageData;
   const locations = context.locations;
   const setLocations = context.setLocations;
   const setDisplayedWeather = context.setDisplayedWeather;
-  const handleLocationClick = context.handleLocationClick;
 
   const handleDeleteLocation = (location: string) => {
     if (localStorageData !== null) {
@@ -27,7 +30,8 @@ export default function Location({
         const newLocationsArray = localStorageData.toSpliced(index, 1);
         const newLocations = new Map(locations);
         newLocations.delete(location);
-        setLocations && setLocations(newLocations);
+        setItems(newLocationsArray);
+        setLocations(newLocations);
         localStorage.setItem("locations", JSON.stringify(newLocationsArray));
       } else {
         localStorage.removeItem("locations");
@@ -50,11 +54,9 @@ export default function Location({
       className={`location ${
         weatherCodes.weatherCode[currentData.values.weatherCode]
       }`}
+      // onClick={() => handleLocationClick(locationCoordinates)}
     >
-      <div
-        className="location-content"
-        onClick={() => handleLocationClick(locationCoordinates)}
-      >
+      <div className="location-content">
         {/* {currentLocation && (
           <div className="location-row" style={{ paddingBottom: 0 }}>
             <div className="label">
@@ -102,12 +104,6 @@ export default function Location({
           </span>
         )}
       </div>
-      {/* <div
-        className="location-button"
-        onClick={() => handleDeleteLocation(locationCoordinates)}
-      > */}
-      {/* Delete
-      </div> */}
     </div>
   );
 }
