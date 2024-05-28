@@ -1,8 +1,8 @@
 import { useState, useEffect, createContext } from "react";
 import LocationWeather from "./LocationWeather";
 import Locations from "./Locations";
-import { LocationsContextType, WeatherData } from "./types/Interfaces";
-import { fetchGeolocationData, fetchLocalData } from "./utils";
+import { LocationsContextType, WeatherData } from "../lib/types/Interfaces";
+import { fetchGeolocationData, fetchLocalData } from "../lib/utils";
 
 export const LocationsContext = createContext<LocationsContextType | null>(
   null
@@ -20,74 +20,56 @@ export default function App() {
   const localStorageData: string[] | null = localStorageString
     ? JSON.parse(localStorageString)
     : null;
+  const [geolocation, setGeolocation] = useState<Map<
+    string,
+    WeatherData
+  > | null>(null);
   const [locations, setLocations] = useState<Map<string, WeatherData> | null>(
     null
   );
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
   const handleLocationClick = (location: string) => {
-    locations && setDisplayedWeather(locations.get(location) ?? null);
-    setSelectedLocation(location);
+    if (locations && locations.has(location)) {
+      const locationData = locations.get(location);
+      locationData !== undefined && setDisplayedWeather(locationData);
+      setSelectedLocation(location);
+    } else if (geolocation && geolocation.has(location)) {
+      const locationData = geolocation.get(location);
+      locationData !== undefined && setDisplayedWeather(locationData);
+      setSelectedLocation(location);
+    }
   };
 
   const fetchData = async () => {
-    const newLocations = new Map(locations);
-    // const currentLocation = await fetchGeolocationData(newLocations);
-    // const localData = await fetchLocalData(localStorageData, newLocations);
-    const [currentLocation, localData] = await Promise.all([
+    const [geolocationData, localData] = await Promise.all([
       fetchGeolocationData(),
       fetchLocalData(localStorageData),
     ]);
-    if (!currentLocation && !localData) {
-      return null;
-    } else if (!localData) {
-      return new Map(currentLocation);
-    } else if (!currentLocation) {
-      return new Map(localData);
-    } else return new Map([...currentLocation, ...localData]);
+    return { geolocationData: geolocationData, localData: localData };
   };
 
   useEffect(() => {
     async function load() {
-      const locationsData = await fetchData();
-      setLocations(locationsData);
-      locationsData
-        ? setDisplayedWeather(locationsData.values().next().value)
-        : setDisplayedWeather(null);
+      const { geolocationData, localData } = await fetchData();
+      setGeolocation(geolocationData);
+      setLocations(localData);
+      if (geolocationData) {
+        setDisplayedWeather(geolocationData.values().next().value);
+      } else if (localData) {
+        setDisplayedWeather(localData.values().next().value);
+      } else setDisplayedWeather(null);
       setIsLoading(false);
     }
     load();
   }, []);
 
-  // useEffect(() => {
-  //   async function load() {
-  //     const [currentLocation, localData] = await Promise.all([
-  //       fetchGeolocationData(newLocations),
-  //       fetchLocalData(localStorageData, newLocations),
-  //     ]);
-  //     setIsLoading(false);
-  //     if (currentLocation && localData) {
-  //       setLocations(new Map([...currentLocation, ...localData]));
-  //       setDisplayedWeather(currentLocation.values().next().value);
-  //     } else if (currentLocation) {
-  //       setLocations(new Map(currentLocation));
-  //       setDisplayedWeather(currentLocation.values().next().value);
-  //     } else if (localData) {
-  //       setLocations(new Map(localData));
-  //       setDisplayedWeather(localData.values().next().value);
-  //     } else {
-  //       setLocations(null);
-  //       setDisplayedWeather(null);
-  //     }
-  //     console.log(locations);
-  //   }
-  //   load();
-  // }, []);
-
   return (
     <LocationsContext.Provider
       value={{
         localStorageData,
+        geolocation,
+        setGeolocation,
         locations,
         setLocations,
         displayedWeather,

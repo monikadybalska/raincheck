@@ -1,21 +1,25 @@
-import { weatherCodes } from "./weatherCodes";
-import { useContext } from "react";
-import { WeatherData, LocationsContextType } from "./types/Interfaces";
+import { weatherCodes } from "../lib/types/weatherCodes";
+import { SetStateAction, useContext } from "react";
+import { WeatherData, LocationsContextType } from "../lib/types/Interfaces";
 import { LocationsContext } from "./App";
+import { getIcon } from "../lib/utils";
 
 export default function Location({
   locationCoordinates,
   locationWeather,
+  currentLocation,
+  setItems,
 }: {
   locationCoordinates: string;
-  locationWeather: WeatherData;
+  locationWeather: WeatherData | undefined;
+  currentLocation: boolean;
+  setItems: React.Dispatch<SetStateAction<string[]>>;
 }) {
   const context = useContext(LocationsContext) as LocationsContextType;
   const localStorageData = context.localStorageData;
   const locations = context.locations;
   const setLocations = context.setLocations;
   const setDisplayedWeather = context.setDisplayedWeather;
-  const handleLocationClick = context.handleLocationClick;
 
   const handleDeleteLocation = (location: string) => {
     if (localStorageData !== null) {
@@ -24,7 +28,8 @@ export default function Location({
         const newLocationsArray = localStorageData.toSpliced(index, 1);
         const newLocations = new Map(locations);
         newLocations.delete(location);
-        setLocations && setLocations(newLocations);
+        setItems(newLocationsArray);
+        setLocations(newLocations);
         localStorage.setItem("locations", JSON.stringify(newLocationsArray));
       } else {
         localStorage.removeItem("locations");
@@ -37,46 +42,60 @@ export default function Location({
   };
 
   const currentDate = new Date(Date.now()).toISOString();
-  const currentData = locationWeather.timelines.hourly.filter(
+  const currentData = locationWeather?.timelines.hourly.filter(
     (timestamp) => timestamp.time.slice(0, 13) === currentDate.slice(0, 13)
   )[0];
 
   return (
-    <div
-      key={locationCoordinates}
-      className={`location ${
-        weatherCodes.weatherCode[currentData.values.weatherCode]
-      }`}
-    >
+    currentData &&
+    locationWeather && (
       <div
-        className="location-content"
-        onClick={() => handleLocationClick(locationCoordinates)}
+        key={locationCoordinates}
+        className={`location ${
+          weatherCodes.weatherCode[currentData.values.weatherCode]
+        }`}
       >
-        <div className="location-row">
-          <span className="material-symbols-outlined">location_on</span>
-          <div className="location-text">
-            {locationWeather.google?.results[0].address_components[0]
-              .short_name ?? "Location name not found"}
+        <div className="location-content">
+          <span className="material-symbols-outlined m illustration">
+            {getIcon(weatherCodes.weatherCode[currentData.values.weatherCode])}
+          </span>
+          <div className="location-row">
+            {currentLocation && (
+              <span
+                className="material-symbols-outlined"
+                style={{ paddingRight: "0.3rem" }}
+              >
+                location_on
+              </span>
+            )}
+            <div className="location-text">
+              {locationWeather.google?.results[0].address_components[0]
+                .short_name ?? "Location name not found"}
+            </div>
           </div>
-        </div>
-        <div className="location-row">
-          <div className="location-text temperature">
-            {currentData.values.temperature} °C
+          <div className="location-row">
+            <div className="location-text temperature">
+              {currentData.values.temperature} °C
+            </div>
           </div>
-        </div>
-        <div className="location-row">
-          <div className="location-text">
-            {weatherCodes.weatherCode[currentData.values.weatherCode]}
+          <div className="location-row">
+            <div className="location-text">
+              {weatherCodes.weatherCode[currentData.values.weatherCode]}
+            </div>
           </div>
+          {!currentLocation && (
+            <span
+              className="material-symbols-outlined location-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteLocation(locationCoordinates);
+              }}
+            >
+              delete
+            </span>
+          )}
         </div>
       </div>
-      <div
-        className="location-button"
-        onClick={() => handleDeleteLocation(locationCoordinates)}
-      >
-        <span className="material-symbols-outlined ">delete</span>
-        Delete
-      </div>
-    </div>
+    )
   );
 }

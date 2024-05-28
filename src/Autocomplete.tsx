@@ -1,25 +1,32 @@
-import React, { useEffect, useState, useCallback, FormEvent } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  FormEvent,
+  useContext,
+} from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { LocationsContext } from "./App";
+import {
+  WeatherData,
+  LocationsContextType,
+  GoogleGeocodingData,
+} from "../lib/types/Interfaces";
 
 interface Props {
   onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void;
 }
 
-// This is a custom built autocomplete component using the "Autocomplete Service" for predictions
-// and the "Places Service" for place details
-export const AutocompleteCustom = () => {
+export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
   const map = useMap();
   const places = useMapsLibrary("places");
 
-  // https://developers.google.com/maps/documentation/javascript/reference/places-autocomplete-service#AutocompleteSessionToken
   const [sessionToken, setSessionToken] =
     useState<google.maps.places.AutocompleteSessionToken>();
 
-  // https://developers.google.com/maps/documentation/javascript/reference/places-autocomplete-service
   const [autocompleteService, setAutocompleteService] =
     useState<google.maps.places.AutocompleteService | null>(null);
 
-  // https://developers.google.com/maps/documentation/javascript/reference/places-service
   const [placesService, setPlacesService] =
     useState<google.maps.places.PlacesService | null>(null);
 
@@ -74,43 +81,88 @@ export const AutocompleteCustom = () => {
         sessionToken,
       };
 
-      //   const detailsRequestCallback = (
-      //     placeDetails: google.maps.places.PlaceResult | null
-      //   ) => {
-      //     onPlaceSelect(placeDetails);
-      //     setPredictionResults([]);
-      //     setInputValue(placeDetails?.formatted_address ?? "");
-      //     setSessionToken(new places.AutocompleteSessionToken());
-      //   };
+      const detailsRequestCallback = (
+        placeDetails: google.maps.places.PlaceResult | null
+      ) => {
+        onPlaceSelect(placeDetails);
+        setPredictionResults([]);
+        setInputValue(placeDetails?.formatted_address ?? "");
+        setSessionToken(new places.AutocompleteSessionToken());
+      };
 
-      //   placesService?.getDetails(detailRequestOptions, detailsRequestCallback);
+      placesService?.getDetails(detailRequestOptions, detailsRequestCallback);
     },
-    [places, placesService, sessionToken]
+    [onPlaceSelect, places, placesService, sessionToken]
   );
 
-  return (
-    <div className="autocomplete-container">
-      <input
-        value={inputValue}
-        onInput={(event: FormEvent<HTMLInputElement>) => onInputChange(event)}
-        placeholder="Search for a place"
-      />
+  const context = useContext(LocationsContext) as LocationsContextType;
+  const localStorageData = context.localStorageData;
+  const locations = context.locations;
+  const setLocations = context.setLocations;
+  const setDisplayedWeather = context.setDisplayedWeather;
 
-      {predictionResults.length > 0 && (
-        <ul className="custom-list">
-          {predictionResults.map(({ place_id, description }) => {
-            return (
-              <li
-                key={place_id}
-                className="custom-list-item"
-                onClick={() => handleSuggestionClick(place_id)}
-              >
-                {description}
-              </li>
-            );
-          })}
-        </ul>
-      )}
+  const handleLocationAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newLocations = new Map(locations);
+    const google: GoogleGeocodingData = await fetch(
+      encodeURI(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${inputValue}&key=${
+          import.meta.env.VITE_GOOGLE_API_KEY
+        }`
+      )
+    ).then((res) => res.json());
+    const geometry = `${google.results[0].geometry.location.lat},${google.results[0].geometry.location.lng}`;
+    const weather: WeatherData = await fetch(
+      `https://api.tomorrow.io/v4/weather/forecast?location=${geometry}&timesteps=1h&timesteps=1d&apikey=${
+        import.meta.env.VITE_TOMORROW_API_KEY
+      }`
+    ).then((res) => res.json());
+    newLocations.set(geometry, { ...weather, google });
+    setLocations(newLocations);
+    setDisplayedWeather({ ...weather, google });
+    if (localStorageData) {
+      if (!localStorageData.includes(geometry)) {
+        localStorageData.push(geometry);
+        localStorage.setItem("locations", JSON.stringify(localStorageData));
+      }
+    } else {
+      localStorage.setItem("locations", JSON.stringify([`${geometry}`]));
+    }
+  };
+
+  return (
+    <div className="map-search">
+      <div className="autocomplete-container">
+        <input
+          value={inputValue}
+          onInput={(event: FormEvent<HTMLInputElement>) => onInputChange(event)}
+          placeholder="Search for a place"
+          className="map-search-input text"
+        />
+        <div className="predictions">
+          {predictionResults.length > 0 && (
+            <ul className="custom-list">
+              {predictionResults.map(({ place_id, description }) => {
+                return (
+                  <li
+                    key={place_id}
+                    className="custom-list-item"
+                    onClick={() => handleSuggestionClick(place_id)}
+                  >
+                    <span className="material-symbols-outlined s">
+                      location_on
+                    </span>
+                    {description}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
+      <button onClick={handleLocationAdd} className="map-search-input button">
+        Add to locations
+      </button>
     </div>
   );
 };
