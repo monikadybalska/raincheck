@@ -102,9 +102,8 @@ export default function App() {
             )}
           </>
         )}
-        <div className="footer">© 2024 Chryja</div>
+        <div className="footer">© 2024 Monika Dybalska</div>
       </div>
     </LocationsContext.Provider>
   );
 }
-// https://api.tomorrow.io/v4/weather/forecast?location=52.3563,4.8096&timesteps=1h&timesteps=1d&apikey={{VITE_API_KEY}}
