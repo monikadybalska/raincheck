@@ -28,7 +28,7 @@ export const fetchGeolocationData: () => Promise<Map<
       `https://api.tomorrow.io/v4/weather/forecast?location=${
         position.coords.latitude
       },${position.coords.longitude}&timesteps=1h&timesteps=1d&apikey=${
-        import.meta.env.VITE_GOOGLE_API_KEY
+        import.meta.env.VITE_TOMORROW_API_KEY
       }`
     ).then((res) => res.json());
     const [google, weather] = await Promise.all([
