@@ -2,10 +2,16 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Location from "./Location";
 import { LocationsContext } from "./App";
-import { LocationsContextType } from "./types/Interfaces";
-import { useContext } from "react";
+import { LocationsContextType, WeatherData } from "../lib/types/Interfaces";
+import React, { useContext } from "react";
+import { Modifier } from "@dnd-kit/core";
 
-export function SortableItem(props: any) {
+export function SortableItem(props: {
+  id: string;
+  locationWeather: WeatherData | undefined;
+  setItems: React.Dispatch<React.SetStateAction<string[]>>;
+  modifiers: Modifier[];
+}) {
   const context = useContext(LocationsContext) as LocationsContextType;
   const handleLocationClick = context.handleLocationClick;
 
@@ -30,7 +36,6 @@ export function SortableItem(props: any) {
         locationCoordinates={props.id}
         locationWeather={props.locationWeather}
         currentLocation={false}
-        items={props.items}
         setItems={props.setItems}
       />
     </div>

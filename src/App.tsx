@@ -1,8 +1,8 @@
 import { useState, useEffect, createContext } from "react";
 import LocationWeather from "./LocationWeather";
 import Locations from "./Locations";
-import { LocationsContextType, WeatherData } from "./types/Interfaces";
-import { fetchGeolocationData, fetchLocalData } from "./utils";
+import { LocationsContextType, WeatherData } from "../lib/types/Interfaces";
+import { fetchGeolocationData, fetchLocalData } from "../lib/utils";
 
 export const LocationsContext = createContext<LocationsContextType | null>(
   null
@@ -47,13 +47,6 @@ export default function App() {
       fetchLocalData(localStorageData),
     ]);
     return { geolocationData: geolocationData, localData: localData };
-    // if (!geolocationData && !localData) {
-    //   return null;
-    // } else if (!localData) {
-    //   return new Map(geolocationData);
-    // } else if (!geolocationData) {
-    //   return new Map(localData);
-    // } else return new Map([...geolocationData, ...localData]);
   };
 
   useEffect(() => {
@@ -70,31 +63,6 @@ export default function App() {
     }
     load();
   }, []);
-
-  // useEffect(() => {
-  //   async function load() {
-  //     const [currentLocation, localData] = await Promise.all([
-  //       fetchGeolocationData(newLocations),
-  //       fetchLocalData(localStorageData, newLocations),
-  //     ]);
-  //     setIsLoading(false);
-  //     if (currentLocation && localData) {
-  //       setLocations(new Map([...currentLocation, ...localData]));
-  //       setDisplayedWeather(currentLocation.values().next().value);
-  //     } else if (currentLocation) {
-  //       setLocations(new Map(currentLocation));
-  //       setDisplayedWeather(currentLocation.values().next().value);
-  //     } else if (localData) {
-  //       setLocations(new Map(localData));
-  //       setDisplayedWeather(localData.values().next().value);
-  //     } else {
-  //       setLocations(null);
-  //       setDisplayedWeather(null);
-  //     }
-  //     console.log(locations);
-  //   }
-  //   load();
-  // }, []);
 
   return (
     <LocationsContext.Provider

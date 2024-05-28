@@ -2,9 +2,6 @@ import { GoogleGeocodingData, WeatherData } from "./types/Interfaces";
 
 export function getCurrentPosition(): Promise<GeolocationPosition> | null {
   if (!navigator.geolocation) {
-    // setMessage(
-    //   "This browser doesn't support geolocation. Please add a new location below."
-    // );
     return null;
   } else {
     return new Promise((resolve, reject) => {
@@ -28,7 +25,7 @@ export const fetchGeolocationData: () => Promise<Map<
       }`
     ).then((res) => res.json());
     const weatherPromise: Promise<WeatherData> = fetch(
-      "http://localhost:3000/52.3675734,4.9041389"
+      `https://api.tomorrow.io/v4/weather/forecast?location=${position.coords.latitude},${position.coords.longitude}&timesteps=1h&timesteps=1d&apikey=2Od20wd3nAGbpzeQ1DFblpd10rTR5ODi`
     ).then((res) => res.json());
     const [google, weather] = await Promise.all([
       googlePromise,
@@ -52,9 +49,13 @@ export const fetchLocalData = async (localStorageData: string[] | null) => {
     const namesPromises: Promise<GoogleGeocodingData>[] = [];
     for (let i = 0; i < localStorageData.length; i++) {
       dataPromises.push(
-        fetch(`http://localhost:3000/${localStorageData[i]}`).then((res) =>
-          res.json()
-        )
+        fetch(
+          `https://api.tomorrow.io/v4/weather/forecast?location=${
+            localStorageData[i]
+          }&timesteps=1h&timesteps=1d&apikey=${
+            import.meta.env.VITE_TOMORROW_API_KEY
+          }`
+        ).then((res) => res.json())
       );
       namesPromises.push(
         fetch(
@@ -77,3 +78,53 @@ export const fetchLocalData = async (localStorageData: string[] | null) => {
   }
   return null;
 };
+
+export function getIcon(weatherMain: string) {
+  let icon: string = "";
+  switch (weatherMain) {
+    case "Cloudy":
+    case "Mostly Cloudy":
+    case "Partly Cloudy":
+      icon = "cloud";
+      break;
+    case "Clear":
+    case "Clear, Sunny":
+    case "Mostly Clear":
+      icon = "sunny";
+      break;
+    case "Rain":
+    case "Drizzle":
+    case "Light Rain":
+    case "Heavy Rain":
+    case "Freezing Rain":
+    case "Heavy Freezing Rain":
+    case "Light Freezing Drizzle":
+    case "Light Freezing Rain":
+    case "Freezing Drizzle":
+      icon = "rainy";
+      break;
+    case "Thunderstorm":
+      icon = "thunderstorm";
+      break;
+    case "Tornado":
+      icon = "tornado";
+      break;
+    case "Snow":
+    case "Flurries":
+    case "Light Snow":
+    case "Heavy Snow":
+    case "Ice Pellets":
+    case "Light Ice Pellets":
+    case "Heavy Ice Pellets":
+      icon = "snowing";
+      break;
+    case "Mist":
+    case "Fog":
+    case "Light Fog":
+      icon = "mist";
+      break;
+    default:
+      icon = "thermostat";
+  }
+  return icon;
+}

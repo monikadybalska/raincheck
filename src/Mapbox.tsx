@@ -1,17 +1,12 @@
 import { useState } from "react";
 import { APIProvider, ControlPosition, Map } from "@vis.gl/react-google-maps";
 
-import { CustomMapControl } from "./map-control";
-import MapHandler from "./map-handler";
+import { CustomMapControl } from "./MapControl";
+import MapHandler from "./MapHandler";
 
 export type AutocompleteMode = { id: string; label: string };
 
 export default function Mapbox() {
-  const selectedAutocompleteMode = {
-    id: "custom",
-    label: "Custom Build",
-  };
-
   const [selectedPlace, setSelectedPlace] =
     useState<google.maps.places.PlaceResult | null>(null);
 

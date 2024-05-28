@@ -1,9 +1,9 @@
-import { WeatherType } from "./App";
-import { getIcon } from "./LocationWeather";
-import { weatherCodes } from "./weatherCodes";
+import { WeatherData } from "../lib/types/Interfaces";
+import { getIcon } from "../lib/utils";
+import { weatherCodes } from "../lib/types/weatherCodes";
 import "./index.css";
 
-export default function DailyWeather({ data }: { data: WeatherType }) {
+export default function DailyWeather({ data }: { data: WeatherData }) {
   const currentDate = new Date(Date.now()).toISOString();
   const dailyData = data.timelines.daily.filter(
     (day) => day.time.slice(0, 11) >= currentDate.slice(0, 11)

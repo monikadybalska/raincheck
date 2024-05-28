@@ -1,6 +1,6 @@
-import { WeatherData, Hourly } from "./types/Interfaces";
-import { getIcon } from "./LocationWeather";
-import { weatherCodes } from "./weatherCodes";
+import { WeatherData, Hourly } from "../lib/types/Interfaces";
+import { getIcon } from "../lib/utils";
+import { weatherCodes } from "../lib/types/weatherCodes";
 import { useRef } from "react";
 import "./index.css";
 
@@ -49,15 +49,3 @@ export default function HourlyWeather({ data }: { data: WeatherData }) {
     </div>
   );
 }
-
-// export default function HourlyWeather({data} : {data: WeatherData}) {
-//     const hourlyData = data.list.filter((timestamp) => data.list[0].dt_txt.split(" ")[0] === timestamp.dt_txt.split(" ")[0])
-
-//     return <div className="HourlyWeather">
-//         {hourlyData.map((timestamp) => <div className="HourlyWeatherElement">
-//             <p>{timestamp.dt_txt.split(" ")[1].slice(0, -3)}</p>
-//             <span className="material-symbols-outlined">{getIcon(timestamp.weather[0].main)}</span>
-//             <p>{timestamp.main.temp} °C</p>
-//             </div>)}
-//     </div>
-// }

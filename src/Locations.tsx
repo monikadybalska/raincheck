@@ -1,5 +1,5 @@
 import { LocationsContext } from "./App";
-import { LocationsContextType, WeatherData } from "./types/Interfaces";
+import { LocationsContextType, WeatherData } from "../lib/types/Interfaces";
 import Mapbox from "./Mapbox";
 import { useState, useContext } from "react";
 import Location from "./Location";
@@ -12,6 +12,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragEndEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -38,7 +39,7 @@ export default function Locations() {
   };
 
   const [items, setItems] = useState<string[]>(
-    locations ? Array.from(locations.keys()) : ["ok"]
+    locations ? Array.from(locations.keys()) : [""]
   );
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -48,14 +49,16 @@ export default function Locations() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-  function handleDragEnd(event: any) {
+  function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
-    if (active.id !== over.id) {
+    if (active.id !== over?.id) {
       if (locations) {
         setItems((items) => {
-          const oldIndex = Array.from(locations?.keys()).indexOf(active.id);
-          const newIndex = items.indexOf(over.id);
+          const oldIndex = Array.from(locations?.keys()).indexOf(
+            active.id.toString()
+          );
+          const newIndex = items.indexOf(over?.id.toString() || "");
           const newArray = arrayMove(items, oldIndex, newIndex);
           const newArrayMapped: [string, WeatherData][] = newArray.map(
             (location): [string, WeatherData] => [
@@ -87,33 +90,19 @@ export default function Locations() {
               locationCoordinates={Array.from(geolocation.keys())[0]}
               locationWeather={Array.from(geolocation.values())[0]}
               currentLocation={true}
-              items={items}
               setItems={setItems}
             />
           )}
-          {
-            locations &&
-              items.map((id) => (
-                <SortableItem
-                  key={id}
-                  id={id}
-                  locationWeather={locations.get(id)}
-                  items={items}
-                  setItems={setItems}
-                  handle
-                  modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
-                />
-              ))
-            // Array.from(locations).map(
-            //   ([locationCoordinates, locationWeather]) => (
-            //     <Location
-            //       key={locationCoordinates}
-            //       locationCoordinates={locationCoordinates}
-            //       locationWeather={locationWeather}
-            //       currentLocation={false}
-            //     />
-            //   ))
-          }
+          {locations &&
+            items.map((id) => (
+              <SortableItem
+                key={id}
+                id={id}
+                locationWeather={locations.get(id)}
+                setItems={setItems}
+                modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
+              />
+            ))}
           {!geolocation && !locations && (
             <div className="status">{message}</div>
           )}
